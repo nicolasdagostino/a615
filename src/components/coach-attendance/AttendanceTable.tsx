@@ -151,9 +151,13 @@ export default function AttendanceTable({ classId }: Props) {
 
             {rows.length === 0 && (
               <TableRow>
-                <TableCell className="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400" colSpan={5}>
+                <td
+                  className="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400"
+                  colSpan={5}
+                >
                   No hay atletas para esta clase (mock).
-                </TableCell>
+                </td>
+
               </TableRow>
             )}
           </TableBody>
