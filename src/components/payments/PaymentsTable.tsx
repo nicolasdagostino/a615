@@ -405,9 +405,9 @@ export default function PaymentsTable() {
 
                 {currentData.length === 0 && (
                   <TableRow>
-                    <TableCell className="px-4 py-6 text-sm text-gray-500 dark:text-gray-400" colSpan={6}>
+                    <td className="px-4 py-6 text-sm text-gray-500 dark:text-gray-400" colSpan={6}>
                       No payments found.
-                    </TableCell>
+                    </td>
                   </TableRow>
                 )}
               </TableBody>
