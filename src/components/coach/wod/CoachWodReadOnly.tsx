@@ -66,9 +66,9 @@ export default function CoachWodReadOnly() {
 
             {rows.length === 0 && (
               <TableRow>
-                <td colSpan={2} className="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
+                <TableCell colSpan={2} className="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
                   No hay WOD para esta fecha (mock).
-                </td>
+                </TableCell>
               </TableRow>
             )}
           </TableBody>

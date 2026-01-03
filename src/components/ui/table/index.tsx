@@ -31,12 +31,13 @@ interface TableCellBaseProps {
   className?: string; // Optional className for styling
 }
 
+// Accept native td/th props (colSpan, rowSpan, etc.)
 type TableCellProps = TableCellBaseProps &
   (React.TdHTMLAttributes<HTMLTableCellElement> | React.ThHTMLAttributes<HTMLTableCellElement>);
 
 // Table Component
 const Table: React.FC<TableProps> = ({ children, className }) => {
-  return <table className={`min-w-full  ${className}`}>{children}</table>;
+  return <table className={`min-w-full ${className || ""}`}>{children}</table>;
 };
 
 // TableHeader Component
@@ -61,9 +62,9 @@ const TableCell: React.FC<TableCellProps> = ({
   className,
   ...rest
 }) => {
-  const CellTag = isHeader ? 'th' : 'td';
+  const CellTag = isHeader ? "th" : "td";
   return (
-    <CellTag className={` `} {...(rest as any)}>
+    <CellTag className={` ${className || ""}`} {...(rest as any)}>
       {children}
     </CellTag>
   );
