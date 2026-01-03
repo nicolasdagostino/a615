@@ -41,10 +41,10 @@ export default function CoachWodReadOnly() {
             <TableRow>
               <TableCell isHeader className="px-5 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400">
                 Tipo
-              </TableCell>
+              </td>
               <TableCell isHeader className="px-5 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400">
                 Detalle
-              </TableCell>
+              </td>
             </TableRow>
           </TableHeader>
 
@@ -55,20 +55,20 @@ export default function CoachWodReadOnly() {
                   <Badge size="sm" color="success">
                     {w.title}
                   </Badge>
-                </TableCell>
+                </td>
                 <TableCell className="px-5 py-4">
                   <p className="text-sm text-gray-700 dark:text-gray-400">
                     {w.notes ?? "-"}
                   </p>
-                </TableCell>
+                </td>
               </TableRow>
             ))}
 
             {rows.length === 0 && (
               <TableRow>
-                <TableCell colSpan={2} className="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
+                <td colSpan={2} className="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
                   No hay WOD para esta fecha (mock).
-                </TableCell>
+                </td>
               </TableRow>
             )}
           </TableBody>
