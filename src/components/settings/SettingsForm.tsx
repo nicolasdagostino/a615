@@ -81,7 +81,7 @@ export default function SettingsForm() {
 
               <div className="col-span-full">
                 <Label>Notes</Label>
-                <TextArea rows={4} placeholder="Internal notes (optional)" defaultValue="Settings are mock for now." />
+                <TextArea rows={4} placeholder="Internal notes (optional)" value="Settings are mock for now." readOnly />
               </div>
             </div>
           </form>

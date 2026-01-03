@@ -285,7 +285,7 @@ export default function WodPost() {
               rows={3}
               placeholder="Escribe un comentario..."
               value={message}
-              onChange={(e) => setMessage(e.target.value)}
+              onChange={(value) => setMessage(value)}
             />
             <div className="mt-3 flex justify-end">
               <Button
