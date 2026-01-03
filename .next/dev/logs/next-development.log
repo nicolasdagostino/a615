@@ -1,0 +1,1887 @@
+[00:00:01.082] Server  LOG      ✓ Ready in 799ms
+[00:00:04.125] Server  LOG      ○ Compiling /athlete/wod ...
+[00:00:04.916] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:05.096] Browser ERROR   uncaughtError: Error: Hydration failed because the server rendered text didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <InnerLayoutRouter url="/athlete/wod" tree={[...]} params={{}} cacheNode={{lazyData:null, ...}} segmentPath={[...]} ...>
+      <SegmentViewNode type="page" pagePath="(athlete)/...">
+        <SegmentTrieNode>
+        <AthleteWodPage>
+          <WodProvider>
+            <AthleteWodPostPage>
+              <div>
+                <WodPost>
+                  <div className="space-y-6">
+                    <div>
+                    <div className="rounded-2x...">
+                      <div>
+                      <div className="space-y-4 ...">
+                        <div>
+                        <div className="space-y-3">
+                          <div className="rounded-xl...">
+                            <div className="flex items...">
+                              <p className="text-sm font-semibold text-gray-800 dark:text-white/90">
++                               Kaiya George
+-                               Lindsey Curtis
+                              ...
+                            ...
+                          ...
+      ...
+
+[00:00:05.096] Browser WARN    Image with src "http://localhost:3000/images/logo/logo.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[00:00:05.096] Browser WARN    Image with src "http://localhost:3000/images/logo/logo-dark.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[00:00:08.315] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:08.480] Browser ERROR   uncaughtError: Error: Hydration failed because the server rendered text didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <InnerLayoutRouter url="/athlete/wod" tree={[...]} params={{}} cacheNode={{lazyData:null, ...}} segmentPath={[...]} ...>
+      <SegmentViewNode type="page" pagePath="(athlete)/...">
+        <SegmentTrieNode>
+        <AthleteWodPage>
+          <WodProvider>
+            <AthleteWodPostPage>
+              <div>
+                <WodPost>
+                  <div className="space-y-6">
+                    <div>
+                    <div className="rounded-2x...">
+                      <div>
+                      <div className="space-y-4 ...">
+                        <div>
+                        <div className="space-y-3">
+                          <div className="rounded-xl...">
+                            <div className="flex items...">
+                              <p>
+                              <span className="text-xs text-gray-500 dark:text-gray-400">
++                               1/2/2026, 4:03:51 PM
+-                               1/2/2026, 4:03:48 PM
+                            ...
+                          ...
+      ...
+
+[00:00:08.480] Browser WARN    Image with src "http://localhost:3000/images/logo/logo.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[02:26:44.923] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[02:26:45.071] Browser WARN    Image with src "http://localhost:3000/images/logo/logo.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[02:26:45.071] Browser WARN    Image with src "http://localhost:3000/images/logo/logo-dark.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[03:02:29.963] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[03:02:30.124] Browser WARN    Image with src "http://localhost:3000/images/logo/logo.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[03:02:30.124] Browser WARN    Image with src "http://localhost:3000/images/logo/logo-dark.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[03:02:50.845] Server  LOG      ✓ Compiled in 125ms
+[03:02:57.192] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[03:02:57.342] Browser WARN    Image with src "http://localhost:3000/images/logo/logo.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[03:02:57.342] Browser WARN    Image with src "http://localhost:3000/images/logo/logo-dark.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[03:03:26.077] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[03:03:26.213] Browser WARN    Image with src "http://localhost:3000/images/shape/grid-01.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[03:03:26.213] Browser WARN    Image with src "http://localhost:3000/images/error/404.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[03:03:26.213] Browser WARN    Image with src "/images/shape/grid-01.svg" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
+Read more: https://nextjs.org/docs/app/api-reference/components/image#loading
+[03:03:26.213] Browser WARN    Image with src "http://localhost:3000/images/error/404-dark.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[03:03:40.184] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[03:03:40.345] Browser WARN    Image with src "http://localhost:3000/images/logo/logo.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[03:03:40.345] Browser WARN    Image with src "http://localhost:3000/images/logo/logo-dark.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[03:06:19.961] Server  LOG      ✓ Compiled in 123ms
+[03:41:16.341] Server  LOG      ✓ Compiled in 83ms
+[03:43:05.914] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[03:43:06.050] Browser WARN    Image with src "http://localhost:3000/images/shape/grid-01.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[03:43:06.050] Browser WARN    Image with src "http://localhost:3000/images/error/404.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[03:43:06.050] Browser WARN    Image with src "/images/shape/grid-01.svg" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
+Read more: https://nextjs.org/docs/app/api-reference/components/image#loading
+[03:43:06.050] Browser WARN    Image with src "http://localhost:3000/images/error/404-dark.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[03:43:10.718] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[03:43:10.859] Browser WARN    Image with src "http://localhost:3000/images/logo/logo.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[03:43:10.859] Browser WARN    Image with src "http://localhost:3000/images/logo/logo-dark.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[03:43:37.618] Server  LOG      ✓ Compiled in 113ms
+[07:07:31.550] Server  LOG      ✓ Compiled in 331ms
+[07:10:31.391] Server  WARN     ⚠ Cross origin request detected from 192.168.1.146 to /_next/* resource. In a future major version of Next.js, you will need to explicitly configure "allowedDevOrigins" in next.config to allow this.
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+[07:10:31.588] Browser WARN    Image with src "http://192.168.1.146:3000/images/logo/logo.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[07:10:31.588] Browser WARN    Image with src "http://192.168.1.146:3000/admin/images/logo/logo.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[07:21:26.962] Server  LOG      ✓ Compiled in 140ms
+[07:39:44.364] Browser WARN    Image with src "http://localhost:3000/images/logo/logo.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[07:40:45.015] Server  LOG      ✓ Compiled in 237ms
+[07:44:19.314] Browser LOG     Attendance saved (mock) [{"capacity":16,"coach":"Coach Nico","id":101,"people":[{"email":"demoemail@gmail.com","id":1,"name":"Lindsey Curtis","status":"present"},{"email":"demoemail@gmail.com","id":2,"name":"Kaiya George","status":"absent"},{"email":"demoemail@gmail.com","id":3,"name":"Zain Geidt","status":"present"}],"time":"08:00","title":"CrossFit"},{"capacity":12,"coach":"Coach Nico","id":102,"people":[{"email":"demoemail@gmail.com","id":4,"name":"Abram Schleifer","status":"present"},{"email":"demoemail@gmail.com","id":5,"name":"Carla George","status":"present"},{"email":"demoemail@gmail.com","id":6,"name":"Emery Culhane","status":"absent"},{"email":"demoemail@gmail.com","id":7,"name":"Livia Donin","status":"present"}],"time":"18:00","title":"Gymnastic"}]
+[07:53:57.563] Server  ERROR    ⨯ ./src/app/(coach)/coach/profile/page.tsx:1:1
+Module not found: Can't resolve '@/components/athlete/profile/AthleteProfilePage'
+> 1 | import AthleteProfilePage from "@/components/athlete/profile/AthleteProfilePage";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | export default function CoachProfilePage() {
+  4 |   return (
+
+Import map: aliased to relative './src/components/athlete/profile/AthleteProfilePage' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[07:53:57.564] Server  ERROR    ⨯ ./src/app/(coach)/coach/profile/page.tsx:1:1
+Module not found: Can't resolve '@/components/athlete/profile/AthleteProfilePage'
+> 1 | import AthleteProfilePage from "@/components/athlete/profile/AthleteProfilePage";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | export default function CoachProfilePage() {
+  4 |   return (
+
+Import map: aliased to relative './src/components/athlete/profile/AthleteProfilePage' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[07:53:58.601] Browser ERROR   ./src/app/(coach)/coach/profile/page.tsx:1:1
+Module not found: Can't resolve '@/components/athlete/profile/AthleteProfilePage'
+> 1 | import AthleteProfilePage from "@/components/athlete/profile/AthleteProfilePage";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | export default function CoachProfilePage() {
+  4 |   return (
+
+Import map: aliased to relative './src/components/athlete/profile/AthleteProfilePage' inside of [project]/
+
+https://nextjs.org/docs/messages/module-not-found
+[07:55:45.070] Server  LOG      ✓ Compiled in 176ms
+[07:56:08.842] Browser WARN    Image with src "http://localhost:3000/images/logo/logo.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[08:08:18.865] Server  LOG      ✓ Compiled in 174ms
+[08:08:34.160] Server  LOG      ✓ Compiled in 180ms
+[08:09:12.125] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[08:09:12.259] Browser WARN    Image with src "http://localhost:3000/images/logo/logo.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[08:25:46.782] Browser WARN    Image with src "http://192.168.1.146:3000/images/logo/logo.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[08:25:46.782] Browser WARN    Image with src "http://192.168.1.146:3000/admin/images/logo/logo.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[08:26:46.505] Browser LOG     defaultValues {"credits":"12","dob":"1997-09-21","email":"kaiya@gmail.com","expiresAt":"2026-01-06","fullName":"Kaiya George","monthlyFee":"€59","notes":"Prefiere clases AM.","paymentMethod":"transfer","phone":"+34 600 333 444","plan":"3x","startDate":"2025-10-15","status":"expiring"}
+[08:26:46.505] Browser LOG     defaultValues {"credits":"12","dob":"1997-09-21","email":"kaiya@gmail.com","expiresAt":"2026-01-06","fullName":"Kaiya George","monthlyFee":"€59","notes":"Prefiere clases AM.","paymentMethod":"transfer","phone":"+34 600 333 444","plan":"3x","startDate":"2025-10-15","status":"expiring"}
+[08:26:46.505] Browser LOG     defaultValues {"credits":"12","dob":"1997-09-21","email":"kaiya@gmail.com","expiresAt":"2026-01-06","fullName":"Kaiya George","monthlyFee":"€59","notes":"Prefiere clases AM.","paymentMethod":"transfer","phone":"+34 600 333 444","plan":"3x","startDate":"2025-10-15","status":"expiring"}
+[08:26:46.505] Browser LOG     defaultValues {"credits":"12","dob":"1997-09-21","email":"kaiya@gmail.com","expiresAt":"2026-01-06","fullName":"Kaiya George","monthlyFee":"€59","notes":"Prefiere clases AM.","paymentMethod":"transfer","phone":"+34 600 333 444","plan":"3x","startDate":"2025-10-15","status":"expiring"}
+[16:58:37.250] Server  LOG      ✓ Compiled in 375ms
+[17:22:10.828] Server  LOG      ✓ Compiled in 135ms
+[17:22:11.868] Browser ERROR   uncaughtError: ReferenceError: actor is not defined
+[17:22:27.869] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[17:22:27.893] Server  LOG      ✓ Compiled in 103ms
+[17:22:28.130] Server  ERROR    ⨯ ReferenceError: actor is not defined
+[17:22:28.315] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[17:22:28.869] Browser ERROR   uncaughtError: ReferenceError: actor is not defined
+[17:22:40.424] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[17:22:40.440] Server  LOG      ✓ Compiled in 91ms
+[17:22:40.727] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[17:22:40.867] Browser WARN    Image with src "http://localhost:3000/images/logo/logo.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[17:22:51.026] Server  LOG      ✓ Compiled in 90ms
+[17:22:51.867] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(athlete)/layout.tsx [Client Component Browser]
+    ./src/app/(athlete)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(athlete)/layout.tsx [Client Component SSR]
+    ./src/app/(athlete)/layout.tsx [Server Component]
+[17:24:40.265] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(athlete)/layout.tsx [Client Component Browser]
+    ./src/app/(athlete)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(athlete)/layout.tsx [Client Component SSR]
+    ./src/app/(athlete)/layout.tsx [Server Component]
+[17:24:40.482] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[17:24:40.482] Browser WARN    Image with src "http://localhost:3000/images/shape/grid-01.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[17:24:40.482] Browser WARN    Image with src "http://localhost:3000/images/error/404.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[17:24:40.645] Browser WARN    Image with src "/images/shape/grid-01.svg" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
+Read more: https://nextjs.org/docs/app/api-reference/components/image#loading
+[17:24:40.645] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(athlete)/layout.tsx [Client Component Browser]
+    ./src/app/(athlete)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(athlete)/layout.tsx [Client Component SSR]
+    ./src/app/(athlete)/layout.tsx [Server Component]
+[17:24:40.645] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(athlete)/layout.tsx [Client Component Browser]
+    ./src/app/(athlete)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(athlete)/layout.tsx [Client Component SSR]
+    ./src/app/(athlete)/layout.tsx [Server Component]
+[17:24:40.645] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Server Component]
+[17:24:40.645] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(coach)/layout.tsx [Client Component Browser]
+    ./src/app/(coach)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(coach)/layout.tsx [Client Component SSR]
+    ./src/app/(coach)/layout.tsx [Server Component]
+[17:24:40.645] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(coach)/layout.tsx [Client Component Browser]
+    ./src/app/(coach)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(coach)/layout.tsx [Client Component SSR]
+    ./src/app/(coach)/layout.tsx [Server Component]
+[17:24:40.645] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Server Component]
+[17:24:40.645] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Server Component]
+[17:24:40.645] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Server Component]
+[17:24:40.645] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Server Component]
+[17:24:40.645] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Server Component]
+[17:24:40.645] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Server Component]
+[17:24:40.645] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Server Component]
+[17:24:40.645] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Server Component]
+[17:24:40.645] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Server Component]
+[17:24:40.645] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Server Component]
+[17:24:40.645] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Server Component]
+[17:24:40.645] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(athlete)/layout.tsx [Client Component Browser]
+    ./src/app/(athlete)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(athlete)/layout.tsx [Client Component SSR]
+    ./src/app/(athlete)/layout.tsx [Server Component]
+[17:24:40.645] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(athlete)/layout.tsx [Client Component Browser]
+    ./src/app/(athlete)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(athlete)/layout.tsx [Client Component SSR]
+    ./src/app/(athlete)/layout.tsx [Server Component]
+[17:24:40.645] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(athlete)/layout.tsx [Client Component Browser]
+    ./src/app/(athlete)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(athlete)/layout.tsx [Client Component SSR]
+    ./src/app/(athlete)/layout.tsx [Server Component]
+[17:24:40.645] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Server Component]
+[17:24:40.645] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(coach)/layout.tsx [Client Component Browser]
+    ./src/app/(coach)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(coach)/layout.tsx [Client Component SSR]
+    ./src/app/(coach)/layout.tsx [Server Component]
+[17:24:40.645] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(coach)/layout.tsx [Client Component Browser]
+    ./src/app/(coach)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(coach)/layout.tsx [Client Component SSR]
+    ./src/app/(coach)/layout.tsx [Server Component]
+[17:24:40.645] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(coach)/layout.tsx [Client Component Browser]
+    ./src/app/(coach)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(coach)/layout.tsx [Client Component SSR]
+    ./src/app/(coach)/layout.tsx [Server Component]
+[17:24:40.645] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(coach)/layout.tsx [Client Component Browser]
+    ./src/app/(coach)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(coach)/layout.tsx [Client Component SSR]
+    ./src/app/(coach)/layout.tsx [Server Component]
+[17:24:40.645] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Server Component]
+[17:24:40.645] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Server Component]
+[17:24:40.645] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(athlete)/layout.tsx [Client Component Browser]
+    ./src/app/(athlete)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(athlete)/layout.tsx [Client Component SSR]
+    ./src/app/(athlete)/layout.tsx [Server Component]
+[17:24:44.508] Server  ERROR    ⨯ ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Server Component]
+
+
+[17:24:44.627] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(athlete)/layout.tsx [Client Component Browser]
+    ./src/app/(athlete)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(athlete)/layout.tsx [Client Component SSR]
+    ./src/app/(athlete)/layout.tsx [Server Component]
+[17:24:45.174] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(athlete)/layout.tsx [Client Component Browser]
+    ./src/app/(athlete)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(athlete)/layout.tsx [Client Component SSR]
+    ./src/app/(athlete)/layout.tsx [Server Component]
+[17:24:45.174] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(athlete)/layout.tsx [Client Component Browser]
+    ./src/app/(athlete)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(athlete)/layout.tsx [Client Component SSR]
+    ./src/app/(athlete)/layout.tsx [Server Component]
+[17:24:45.275] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(athlete)/layout.tsx [Client Component Browser]
+    ./src/app/(athlete)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(athlete)/layout.tsx [Client Component SSR]
+    ./src/app/(athlete)/layout.tsx [Server Component]
+[17:24:45.859] Server  ERROR    ⨯ ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Server Component]
+
+
+[17:24:46.077] Browser ERROR   uncaughtError: Error: ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(athlete)/layout.tsx [Client Component Browser]
+    ./src/app/(athlete)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(athlete)/layout.tsx [Client Component SSR]
+    ./src/app/(athlete)/layout.tsx [Server Component]
+
+
+[17:24:46.245] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(athlete)/layout.tsx [Client Component Browser]
+    ./src/app/(athlete)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(athlete)/layout.tsx [Client Component SSR]
+    ./src/app/(athlete)/layout.tsx [Server Component]
+[17:24:46.245] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(athlete)/layout.tsx [Client Component Browser]
+    ./src/app/(athlete)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(athlete)/layout.tsx [Client Component SSR]
+    ./src/app/(athlete)/layout.tsx [Server Component]
+[17:24:46.245] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Server Component]
+[17:24:46.245] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(coach)/layout.tsx [Client Component Browser]
+    ./src/app/(coach)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(coach)/layout.tsx [Client Component SSR]
+    ./src/app/(coach)/layout.tsx [Server Component]
+[17:24:46.245] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(coach)/layout.tsx [Client Component Browser]
+    ./src/app/(coach)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(coach)/layout.tsx [Client Component SSR]
+    ./src/app/(coach)/layout.tsx [Server Component]
+[17:24:46.245] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Server Component]
+[17:24:46.245] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Server Component]
+[17:24:46.245] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Server Component]
+[17:24:46.245] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Server Component]
+[17:24:46.245] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Server Component]
+[17:24:46.245] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Server Component]
+[17:24:46.245] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Server Component]
+[17:24:46.245] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Server Component]
+[17:24:46.245] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Server Component]
+[17:24:46.245] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Server Component]
+[17:24:46.245] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Server Component]
+[17:24:46.245] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(athlete)/layout.tsx [Client Component Browser]
+    ./src/app/(athlete)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(athlete)/layout.tsx [Client Component SSR]
+    ./src/app/(athlete)/layout.tsx [Server Component]
+[17:24:46.245] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(athlete)/layout.tsx [Client Component Browser]
+    ./src/app/(athlete)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(athlete)/layout.tsx [Client Component SSR]
+    ./src/app/(athlete)/layout.tsx [Server Component]
+[17:24:46.245] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(athlete)/layout.tsx [Client Component Browser]
+    ./src/app/(athlete)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(athlete)/layout.tsx [Client Component SSR]
+    ./src/app/(athlete)/layout.tsx [Server Component]
+[17:24:46.245] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Server Component]
+[17:24:46.245] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(coach)/layout.tsx [Client Component Browser]
+    ./src/app/(coach)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(coach)/layout.tsx [Client Component SSR]
+    ./src/app/(coach)/layout.tsx [Server Component]
+[17:24:46.245] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(coach)/layout.tsx [Client Component Browser]
+    ./src/app/(coach)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(coach)/layout.tsx [Client Component SSR]
+    ./src/app/(coach)/layout.tsx [Server Component]
+[17:24:46.245] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(coach)/layout.tsx [Client Component Browser]
+    ./src/app/(coach)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(coach)/layout.tsx [Client Component SSR]
+    ./src/app/(coach)/layout.tsx [Server Component]
+[17:24:46.245] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(coach)/layout.tsx [Client Component Browser]
+    ./src/app/(coach)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(coach)/layout.tsx [Client Component SSR]
+    ./src/app/(coach)/layout.tsx [Server Component]
+[17:24:46.245] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Server Component]
+[17:24:46.245] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Server Component]
+[17:24:46.245] Browser ERROR   ./src/components/header/NotificationDropdown.tsx:85:11
+Ecmascript file had an error
+  83 |       return safeDate(b).getTime() - safeDate(a).getTime();
+  84 |     });
+> 85 |     const sorted = (sorted)
+     |           ^^^^^^
+  86 |       .filter((n: any) => {
+  87 |         if (scope === "athlete") {
+  88 |           const t = getType(n);
+
+the name `sorted` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/header/NotificationDropdown.tsx [Client Component Browser]
+    ./src/layout/AppHeader.tsx [Client Component Browser]
+    ./src/app/(athlete)/layout.tsx [Client Component Browser]
+    ./src/app/(athlete)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/header/NotificationDropdown.tsx [Client Component SSR]
+    ./src/layout/AppHeader.tsx [Client Component SSR]
+    ./src/app/(athlete)/layout.tsx [Client Component SSR]
+    ./src/app/(athlete)/layout.tsx [Server Component]
+[18:29:05.745] Server  LOG      ✓ Compiled in 251ms
+[18:29:06.373] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[18:29:06.869] Browser WARN    Image with src "http://localhost:3000/images/logo/logo.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[18:39:59.655] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[18:39:59.655] Browser WARN    Image with src "http://localhost:3000/images/logo/logo.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[18:40:08.362] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[18:40:08.481] Browser WARN    Image with src "http://localhost:3000/images/logo/logo.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[18:46:32.332] Server  LOG      ✓ Compiled in 129ms
+[18:47:14.975] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[18:47:14.975] Browser WARN    Image with src "http://localhost:3000/images/shape/grid-01.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[18:47:14.975] Browser WARN    Image with src "http://localhost:3000/images/error/404.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[18:47:15.094] Browser WARN    Image with src "/images/shape/grid-01.svg" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
+Read more: https://nextjs.org/docs/app/api-reference/components/image#loading
+[18:47:18.972] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[18:47:18.972] Browser WARN    Image with src "http://localhost:3000/images/logo/logo.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[18:47:28.829] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[18:47:28.961] Browser WARN    Image with src "/images/logo/logo.svg" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
+Read more: https://nextjs.org/docs/app/api-reference/components/image#loading
+[18:47:28.961] Browser WARN    Image with src "http://localhost:3000/images/logo/logo.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[18:48:02.750] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[18:48:02.884] Browser WARN    Image with src "http://localhost:3000/images/logo/logo.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[18:48:02.884] Browser WARN    Image with src "/images/logo/logo.svg" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
+Read more: https://nextjs.org/docs/app/api-reference/components/image#loading
+[18:58:55.759] Server  LOG      ✓ Compiled in 184ms
+[18:59:19.787] Browser ERROR   uncaughtError: TypeError: Cannot read properties of undefined (reading 'value')
+[18:59:19.943] Browser ERROR   uncaughtError: TypeError: Cannot read properties of undefined (reading 'value')
+[18:59:20.330] Browser ERROR   uncaughtError: TypeError: Cannot read properties of undefined (reading 'value')
+[18:59:20.330] Browser ERROR   uncaughtError: TypeError: Cannot read properties of undefined (reading 'value')
+[18:59:20.331] Browser ERROR   uncaughtError: TypeError: Cannot read properties of undefined (reading 'value')
+[18:59:20.331] Browser ERROR   uncaughtError: TypeError: Cannot read properties of undefined (reading 'value')
+[18:59:20.610] Browser ERROR   uncaughtError: TypeError: Cannot read properties of undefined (reading 'value')
+[18:59:20.610] Browser ERROR   uncaughtError: TypeError: Cannot read properties of undefined (reading 'value')
+[18:59:20.729] Browser ERROR   uncaughtError: TypeError: Cannot read properties of undefined (reading 'value')
+[18:59:20.967] Browser ERROR   uncaughtError: TypeError: Cannot read properties of undefined (reading 'value')
+[18:59:22.306] Browser ERROR   uncaughtError: TypeError: Cannot read properties of undefined (reading 'value')
+[18:59:22.504] Browser ERROR   uncaughtError: TypeError: Cannot read properties of undefined (reading 'value')
+[19:00:47.065] Server  LOG      ✓ Compiled in 117ms
+[19:01:02.509] Browser ERROR   uncaughtError: TypeError: Cannot destructure property 'borderColor' of 'variantStyles[variant]' as it is undefined.
+[19:02:17.227] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[19:02:17.245] Server  LOG      ✓ Compiled in 119ms
+[19:02:17.636] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[19:02:17.868] Browser WARN    Image with src "http://localhost:3000/images/logo/logo.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[20:45:28.560] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[20:45:28.706] Browser WARN    Image with src "http://localhost:3000/images/logo/logo.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[20:45:38.856] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[20:45:38.970] Browser WARN    Image with src "http://localhost:3000/images/logo/logo.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[21:19:42.142] Server  LOG      ✓ Compiled in 262ms
+[21:19:51.594] Server  LOG      ✓ Compiled in 93ms
+[21:20:01.123] Server  LOG      ✓ Compiled in 77ms
+[21:20:01.593] Browser ERROR   ./src/components/community/NotificationItem.tsx:69:9
+Parsing ecmascript source code failed
+  67 |             ) : null}
+  68 |           </span>
+> 69 |         asAnyTitle
+     |         ^^^^^^^^^^
+  70 |       />
+  71 |       {subtitle ? (
+  72 |         <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+
+Expected '</', got 'asAnyTitle'
+
+Import traces:
+  Client Component Browser:
+    ./src/components/community/NotificationItem.tsx [Client Component Browser]
+    ./src/components/community/NotificationsFeed.tsx [Client Component Browser]
+    ./src/components/community/NotificationsFeed.tsx [Server Component]
+    ./src/app/(admin)/admin/community/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/community/NotificationItem.tsx [Client Component SSR]
+    ./src/components/community/NotificationsFeed.tsx [Client Component SSR]
+    ./src/components/community/NotificationsFeed.tsx [Server Component]
+    ./src/app/(admin)/admin/community/page.tsx [Server Component]
+[21:20:12.593] Browser ERROR   ./src/components/community/NotificationItem.tsx:69:9
+Parsing ecmascript source code failed
+  67 |             ) : null}
+  68 |           </span>
+> 69 |         asAnyTitle
+     |         ^^^^^^^^^^
+  70 |       />
+  71 |       {subtitle ? (
+  72 |         <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+
+Expected '</', got 'asAnyTitle'
+
+Import traces:
+  Client Component Browser:
+    ./src/components/community/NotificationItem.tsx [Client Component Browser]
+    ./src/components/community/NotificationsFeed.tsx [Client Component Browser]
+    ./src/components/community/NotificationsFeed.tsx [Server Component]
+    ./src/app/(admin)/admin/community/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/community/NotificationItem.tsx [Client Component SSR]
+    ./src/components/community/NotificationsFeed.tsx [Client Component SSR]
+    ./src/components/community/NotificationsFeed.tsx [Server Component]
+    ./src/app/(admin)/admin/community/page.tsx [Server Component]
+[21:20:18.594] Browser ERROR   ./src/components/community/NotificationItem.tsx:69:9
+Parsing ecmascript source code failed
+  67 |             ) : null}
+  68 |           </span>
+> 69 |         asAnyTitle
+     |         ^^^^^^^^^^
+  70 |       />
+  71 |       {subtitle ? (
+  72 |         <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+
+Expected '</', got 'asAnyTitle'
+
+Import traces:
+  Client Component Browser:
+    ./src/components/community/NotificationItem.tsx [Client Component Browser]
+    ./src/components/community/NotificationsFeed.tsx [Client Component Browser]
+    ./src/components/community/NotificationsFeed.tsx [Server Component]
+    ./src/app/(admin)/admin/community/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/community/NotificationItem.tsx [Client Component SSR]
+    ./src/components/community/NotificationsFeed.tsx [Client Component SSR]
+    ./src/components/community/NotificationsFeed.tsx [Server Component]
+    ./src/app/(admin)/admin/community/page.tsx [Server Component]
+[21:20:23.593] Browser ERROR   ./src/components/community/NotificationItem.tsx:69:9
+Parsing ecmascript source code failed
+  67 |             ) : null}
+  68 |           </span>
+> 69 |         asAnyTitle
+     |         ^^^^^^^^^^
+  70 |       />
+  71 |       {subtitle ? (
+  72 |         <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+
+Expected '</', got 'asAnyTitle'
+
+Import traces:
+  Client Component Browser:
+    ./src/components/community/NotificationItem.tsx [Client Component Browser]
+    ./src/components/community/NotificationsFeed.tsx [Client Component Browser]
+    ./src/components/community/NotificationsFeed.tsx [Server Component]
+    ./src/app/(admin)/admin/community/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/community/NotificationItem.tsx [Client Component SSR]
+    ./src/components/community/NotificationsFeed.tsx [Client Component SSR]
+    ./src/components/community/NotificationsFeed.tsx [Server Component]
+    ./src/app/(admin)/admin/community/page.tsx [Server Component]
+[21:33:43.872] Server  LOG      ✓ Compiled in 176ms
+[21:34:02.175] Browser LOG     ADMIN_ANNOUNCEMENT_PUBLISH (mock): {"body":"d","title":"ddd"}
+[21:34:06.698] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[21:34:06.823] Browser WARN    Image with src "http://localhost:3000/images/logo/logo.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[21:34:27.395] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[21:34:27.528] Browser WARN    Image with src "http://localhost:3000/images/logo/logo.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[21:42:14.244] Server  LOG      ✓ Compiled in 199ms
+[21:43:14.580] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[21:43:14.698] Browser WARN    Image with src "http://localhost:3000/images/logo/logo.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[21:46:02.709] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[21:46:02.826] Browser WARN    Image with src "http://localhost:3000/images/logo/logo.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[21:46:09.556] Browser LOG     ADMIN_ANNOUNCEMENT_PUBLISH (mock): {"body":"d","title":"dd"}
+[23:42:17.650] Server  LOG      ✓ Compiled in 322ms
+[23:42:18.319] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[23:42:19.236] Browser WARN    Image with src "http://localhost:3000/images/logo/logo.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[23:42:22.594] Server  LOG      ✓ Compiled in 118ms
+[23:42:34.546] Server  LOG      ✓ Compiled in 181ms
+[23:42:38.024] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[23:42:38.236] Browser WARN    Image with src "http://localhost:3000/images/shape/grid-01.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[23:42:38.236] Browser WARN    Image with src "http://localhost:3000/images/error/404.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[23:43:06.398] Browser WARN    Image with src "/images/shape/grid-01.svg" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
+Read more: https://nextjs.org/docs/app/api-reference/components/image#loading
+[23:43:10.368] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[23:43:10.368] Browser WARN    Image with src "http://localhost:3000/images/logo/logo.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[23:43:15.177] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[23:43:15.177] Browser WARN    Image with src "http://localhost:3000/images/shape/grid-01.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[23:43:15.177] Browser WARN    Image with src "http://localhost:3000/images/error/404.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[23:43:15.299] Browser WARN    Image with src "/images/shape/grid-01.svg" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
+Read more: https://nextjs.org/docs/app/api-reference/components/image#loading
+[23:43:16.846] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[23:43:16.956] Browser WARN    Image with src "http://localhost:3000/images/logo/logo.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[23:43:20.499] Browser WARN    Image with src "http://localhost:3000/images/logo/logo-dark.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.

@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 26, "column": 0}, "map": {"version":3,"sources":["file:///Users/nicolasdagostino/Desktop/Proyecto/A615/src/app/%28admin%29/admin/classes/page.tsx"],"sourcesContent":["export default function Page() {\n  return (\n    <div className=\"rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6\">\n      <h1 className=\"text-xl font-semibold text-gray-800 dark:text-white/90\">TODO</h1>\n      <p className=\"mt-2 text-gray-500 dark:text-gray-400\">Pendiente de implementar.</p>\n    </div>\n  );\n}\n"],"names":[],"mappings":";;;;;;AAAe,SAAS;IACtB,qBACE,8OAAC;QAAI,WAAU;;0BACb,8OAAC;gBAAG,WAAU;0BAAyD;;;;;;0BACvE,8OAAC;gBAAE,WAAU;0BAAwC;;;;;;;;;;;;AAG3D"}}]
+}

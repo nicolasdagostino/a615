@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 26, "column": 0}, "map": {"version":3,"sources":["file:///Users/nicolasdagostino/Desktop/Proyecto/A615/src/app/%28athlete%29/athlete/pagos/page.tsx"],"sourcesContent":["export default function Page() {\n    return <div className=\"text-xl font-semibold\">Pagos</div>;\n  }\n  "],"names":[],"mappings":";;;;;;AAAe,SAAS;IACpB,qBAAO,8OAAC;QAAI,WAAU;kBAAwB;;;;;;AAChD"}}]
+}

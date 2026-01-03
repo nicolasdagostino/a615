@@ -1,0 +1,3 @@
+{
+  "/(admin)/admin/wod/page": "app/(admin)/admin/wod/page.js"
+}
