@@ -143,8 +143,11 @@ export default function AddClassForm({
                   rows={6}
                   placeholder="Notes (optional)"
                   value={form.notes}
-                  onChange={(e) =>
-                    setForm((p) => ({ ...p, notes: e.target.value }))
+                  onChange={(v) =>
+                    setForm((p) => ({
+                      ...p,
+                      notes: typeof v === "string" ? v : ((v as any)?.target?.value ?? ""),
+                    }))
                   }
                 />
               </div>
