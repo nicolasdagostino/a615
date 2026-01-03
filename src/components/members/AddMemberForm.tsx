@@ -154,9 +154,7 @@ export default function AddMemberForm({
                   rows={6}
                   placeholder="Notes (optional)"
                   value={form.notes}
-                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                    setForm((p) => ({ ...p, notes: e.target.value }))
-                  }
+                  onChange={(value) => setForm((p) => ({ ...p, notes: value }))}
                 />
               </div>
             </div>
