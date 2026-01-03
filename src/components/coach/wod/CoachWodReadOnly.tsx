@@ -41,10 +41,10 @@ export default function CoachWodReadOnly() {
             <TableRow>
               <TableCell isHeader className="px-5 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400">
                 Tipo
-              </td>
+              </TableCell>
               <TableCell isHeader className="px-5 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400">
                 Detalle
-              </td>
+              </TableCell>
             </TableRow>
           </TableHeader>
 
@@ -55,12 +55,12 @@ export default function CoachWodReadOnly() {
                   <Badge size="sm" color="success">
                     {w.title}
                   </Badge>
-                </td>
+                </TableCell>
                 <TableCell className="px-5 py-4">
                   <p className="text-sm text-gray-700 dark:text-gray-400">
                     {w.notes ?? "-"}
                   </p>
-                </td>
+                </TableCell>
               </TableRow>
             ))}
 
