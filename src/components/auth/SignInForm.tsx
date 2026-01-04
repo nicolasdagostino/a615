@@ -33,7 +33,7 @@ export default function SignInForm() {
 
     if (error || !data.user) {
       setLoading(false);
-      setErrorMsg("Email o contraseña incorrectos.");
+      setErrorMsg("Invalid email or password..");
       return;
     }
 
