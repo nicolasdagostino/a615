@@ -1,31 +1,58 @@
 import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-// Este endpoint invita usuarios por email (no crea password).
-// El usuario setea su password desde /set-password al abrir el link.
+type AppRole = "admin" | "coach" | "athlete";
+
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const supabase = await createClient();
+
+    // 1) Validar sesión
+    const { data: userData } = await supabase.auth.getUser();
+    const user = userData.user;
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    // 2) Validar admin
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    if (profile?.role !== "admin") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    const body = await req.json().catch(() => ({}));
 
     const fullName = (body.fullName ?? body.name ?? "").toString().trim();
     const email = (body.email ?? "").toString().trim().toLowerCase();
-    const role = (body.role ?? "athlete").toString(); // admin | coach | athlete (o lo que uses)
+    const role = (body.role ?? "").toString().trim() as AppRole;
     const phone = (body.phone ?? "").toString().trim();
 
     if (!fullName) {
       return NextResponse.json({ error: "fullName is required" }, { status: 400 });
     }
-    if (!email) {
-      return NextResponse.json({ error: "email is required" }, { status: 400 });
+    if (!email || !email.includes("@")) {
+      return NextResponse.json({ error: "Invalid email" }, { status: 400 });
     }
 
-    const supabase = createAdminClient();
+    // Este endpoint es para staff: restringimos a admin|coach para no romper tu modelo
+    if (role !== "admin" && role !== "coach") {
+      return NextResponse.json(
+        { error: 'Invalid role. Allowed: "admin" | "coach".' },
+        { status: 400 }
+      );
+    }
+
+    const admin = createAdminClient();
 
     const redirectTo =
       `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/set-password`;
 
-    // 1) Invita al usuario por email
-    const { data, error } = await supabase.auth.admin.inviteUserByEmail(email, {
+    // 3) Invitar usuario por email
+    const { data, error } = await admin.auth.admin.inviteUserByEmail(email, {
       redirectTo,
       data: { fullName, role, phone },
     });
@@ -34,24 +61,24 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
-    // data.user suele venir con el id; si no viniera, igual la invitación fue enviada.
     const userId = (data as any)?.user?.id ?? null;
 
-    // 2) (Opcional pero recomendado) crear/actualizar tu tabla profiles si la tenés
-    // Si no existe la tabla, esta parte fallará: podés comentar.
+    // 4) Upsert profile (si tenemos userId)
     if (userId) {
-      await supabase
-        .from("profiles")
-        .upsert(
-          {
-            id: userId,
-            email,
-            full_name: fullName,
-            role,
-            phone,
-          },
-          { onConflict: "id" }
-        );
+      const { error: upsertErr } = await admin.from("profiles").upsert(
+        {
+          id: userId,
+          email,
+          full_name: fullName,
+          role,
+          phone: phone || null,
+        },
+        { onConflict: "id" }
+      );
+
+      if (upsertErr) {
+        return NextResponse.json({ error: upsertErr.message }, { status: 400 });
+      }
     }
 
     return NextResponse.json({
@@ -62,6 +89,9 @@ export async function POST(req: Request) {
       redirectTo,
     });
   } catch (e: any) {
-    return NextResponse.json({ error: e?.message ?? "Unknown error" }, { status: 500 });
+    return NextResponse.json(
+      { error: e?.message ?? "Unknown error" },
+      { status: 500 }
+    );
   }
 }

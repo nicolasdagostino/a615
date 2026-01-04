@@ -5,7 +5,7 @@ import Label from "@/components/form/Label";
 import Button from "@/components/ui/button/Button";
 import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "@/icons";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -19,6 +19,23 @@ export default function SignInForm() {
 
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const hash = window.location.hash || "";
+    if (!hash) return;
+
+    const params = new URLSearchParams(hash.startsWith("#") ? hash.slice(1) : hash);
+    const type = params.get("type");
+    const access = params.get("access_token");
+    const refresh = params.get("refresh_token");
+
+    // Si Supabase nos manda a /signin con tokens de invite, reenviamos a /set-password preservando el hash.
+    if ((type === "invite" || type === "recovery") && access && refresh) {
+      window.location.replace(`/set-password${hash}`);
+    }
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
