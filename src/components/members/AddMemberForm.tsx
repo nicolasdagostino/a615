@@ -6,6 +6,7 @@ import Input from "@/components/form/input/InputField";
 import Select from "@/components/form/Select";
 import TextArea from "@/components/form/input/TextArea";
 import Button from "@/components/ui/button/Button";
+import Alert from "@/components/ui/alert/Alert";
 
 export type MemberFormDefaults = {
   fullName?: string;
@@ -70,6 +71,7 @@ export default function AddMemberForm({
   });
 
   const [loading, setLoading] = useState(false);
+  const [feedback, setFeedback] = useState<null | { variant: "success" | "error"; title: string; message: string }>(null);
 
   useEffect(() => {
     setForm({
@@ -97,9 +99,19 @@ export default function AddMemberForm({
     );
   }, [form.fullName, form.email, loading]);
 
-  const handleSubmit = async () => {
+  const handleCancel = () => {
+      setFeedback(null);
+      setForm({
+        fullName: "", email: "", phone: "", dob: "", notes: "",
+        plan: "", monthlyFee: "", expiresAt: "", credits: "",
+        status: "", paymentMethod: "", startDate: "",
+      });
+    };
+
+    const handleSubmit = async () => {
     if (!canSubmit) return;
 
+    setFeedback(null);
     setLoading(true);
     try {
       const payload = {
@@ -128,25 +140,38 @@ export default function AddMemberForm({
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        alert(data?.error || "No se pudo guardar el miembro.");
+        setFeedback({
+          variant: "error",
+          title: "Could not save member",
+          message: String(data?.error || "Could not save the member."),
+        });
         setLoading(false);
         return;
       }
 
-      alert(
-        `Invitación enviada a:\n${data?.member?.email}\n\nEl atleta debe abrir el email y crear su contraseña.`
-      );
+      setFeedback({
+          variant: "success",
+          title: "Invitation sent",
+          message: `Invitation sent to: ${data?.member?.email}. The athlete must open the email and create their password.`,
+        });
 
       setLoading(false);
     } catch (err) {
       console.error(err);
-      alert("Error inesperado guardando el miembro.");
+      setFeedback({ variant: "error", title: "Unexpected error", message: "Unexpected error while saving the member." });
       setLoading(false);
     }
   };
 
   return (
     <div className="space-y-6">
+      {feedback ? (
+        <Alert
+          variant={feedback.variant}
+          title={feedback.title}
+          message={feedback.message}
+        />
+      ) : null}
       {/* Member Details */}
       <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
         <div className="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
@@ -375,9 +400,9 @@ export default function AddMemberForm({
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-        <Button variant="outline">
-          Cancel
-        </Button>
+        <Button variant="outline" onClick={handleCancel}>
+            Cancel
+          </Button>
         <Button
           variant="primary"
           onClick={handleSubmit}
