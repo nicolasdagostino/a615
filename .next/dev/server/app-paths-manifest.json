@@ -1,9 +1,4 @@
 {
-  "/(admin)/admin/members/new/page": "app/(admin)/admin/members/new/page.js",
-  "/(admin)/admin/members/page": "app/(admin)/admin/members/page.js",
-  "/(athlete)/athlete/home/page": "app/(athlete)/athlete/home/page.js",
-  "/(athlete)/athlete/reservations/page": "app/(athlete)/athlete/reservations/page.js",
-  "/(full-width-pages)/(auth)/set-password/page": "app/(full-width-pages)/(auth)/set-password/page.js",
   "/(full-width-pages)/(auth)/signin/page": "app/(full-width-pages)/(auth)/signin/page.js",
-  "/api/admin/members/route": "app/api/admin/members/route.js"
+  "/page": "app/page.js"
 }
