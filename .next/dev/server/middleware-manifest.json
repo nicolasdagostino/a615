@@ -1,6 +1,43 @@
 {
   "version": 3,
-  "middleware": {},
-  "sortedMiddleware": [],
+  "middleware": {
+    "/": {
+      "files": [
+        "server/edge/chunks/_1503ee7e._.js",
+        "server/edge/chunks/node_modules_@supabase_auth-js_dist_module_33c852e9._.js",
+        "server/edge/chunks/node_modules_f76aabff._.js",
+        "server/edge/chunks/[root-of-the-server]__04d2629a._.js",
+        "server/edge/chunks/turbopack-edge-wrapper_30813c39.js"
+      ],
+      "name": "middleware",
+      "page": "/",
+      "matchers": [
+        {
+          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/admin(?:\\/((?:[^\\/#\\?]+?)(?:\\/(?:[^\\/#\\?]+?))*))?(\\\\.json)?[\\/#\\?]?$",
+          "originalSource": "/admin/:path*"
+        },
+        {
+          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/coach(?:\\/((?:[^\\/#\\?]+?)(?:\\/(?:[^\\/#\\?]+?))*))?(\\\\.json)?[\\/#\\?]?$",
+          "originalSource": "/coach/:path*"
+        },
+        {
+          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/athlete(?:\\/((?:[^\\/#\\?]+?)(?:\\/(?:[^\\/#\\?]+?))*))?(\\\\.json)?[\\/#\\?]?$",
+          "originalSource": "/athlete/:path*"
+        }
+      ],
+      "wasm": [],
+      "assets": [],
+      "env": {
+        "__NEXT_BUILD_ID": "development",
+        "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "ADGaF3pjDc78DvaK0brpgnj5yqVZpWWUYEYskHtf+ow=",
+        "__NEXT_PREVIEW_MODE_ID": "47d953b046aef2dfb4c33dacbdeb3989",
+        "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "85ab4ed6da905f675baf7452b93eedb34365f086a54fab4dddbc8eca781dad9c",
+        "__NEXT_PREVIEW_MODE_SIGNING_KEY": "da07f600ac21489ce6ce84669d9ca0258a2c36e25a09dd6741530ccb4b60194d"
+      }
+    }
+  },
+  "sortedMiddleware": [
+    "/"
+  ],
   "functions": {}
 }

@@ -175,19 +175,18 @@ __turbopack_context__.s([
 ]);
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react-jsx-dev-runtime.js [app-ssr] (ecmascript)");
 ;
-const TextArea = ({ placeholder = "Enter your message", rows = 3, value = "", onChange, className = "", disabled = false, error = false, hint = "" })=>{
+const TextArea = ({ placeholder = "Enter your message", rows = 3, value, defaultValue, onChange, className = "", disabled = false, readOnly = false, error = false, hint = "" })=>{
     const handleChange = (e)=>{
-        if (onChange) {
-            onChange(e.target.value);
-        }
+        onChange?.(e.target.value);
     };
+    const isControlled = value !== undefined;
     let textareaClasses = `w-full rounded-lg border px-4 py-2.5 text-sm shadow-theme-xs focus:outline-hidden ${className} `;
     if (disabled) {
-        textareaClasses += ` bg-gray-100 opacity-50 text-gray-500 border-gray-300 cursor-not-allowed opacity40 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700`;
+        textareaClasses += ` bg-gray-100 opacity-50 text-gray-500 border-gray-300 cursor-not-allowed dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700`;
     } else if (error) {
-        textareaClasses += ` bg-transparent  border-gray-300 focus:border-error-300 focus:ring-3 focus:ring-error-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-error-800`;
+        textareaClasses += ` bg-transparent border-gray-300 focus:border-error-300 focus:ring-3 focus:ring-error-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-error-800`;
     } else {
-        textareaClasses += ` bg-transparent text-gray-900 dark:text-gray-300 text-gray-900 border-gray-300 focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800`;
+        textareaClasses += ` bg-transparent text-gray-900 border-gray-300 focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800`;
     }
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
         className: "relative",
@@ -195,13 +194,18 @@ const TextArea = ({ placeholder = "Enter your message", rows = 3, value = "", on
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("textarea", {
                 placeholder: placeholder,
                 rows: rows,
-                value: value,
+                ...isControlled ? {
+                    value: value ?? ""
+                } : {
+                    defaultValue: defaultValue ?? ""
+                },
                 onChange: handleChange,
                 disabled: disabled,
+                readOnly: readOnly,
                 className: textareaClasses
             }, void 0, false, {
                 fileName: "[project]/src/components/form/input/TextArea.tsx",
-                lineNumber: 41,
+                lineNumber: 49,
                 columnNumber: 7
             }, ("TURBOPACK compile-time value", void 0)),
             hint && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -209,13 +213,13 @@ const TextArea = ({ placeholder = "Enter your message", rows = 3, value = "", on
                 children: hint
             }, void 0, false, {
                 fileName: "[project]/src/components/form/input/TextArea.tsx",
-                lineNumber: 50,
+                lineNumber: 59,
                 columnNumber: 9
             }, ("TURBOPACK compile-time value", void 0))
         ]
     }, void 0, true, {
         fileName: "[project]/src/components/form/input/TextArea.tsx",
-        lineNumber: 40,
+        lineNumber: 48,
         columnNumber: 5
     }, ("TURBOPACK compile-time value", void 0));
 };
@@ -359,8 +363,7 @@ function AddMemberForm({ defaultValues, primaryButtonLabel = "Save Member" }) {
         paymentMethod: "",
         startDate: ""
     });
-    console.log("defaultValues", defaultValues);
-    // Inicializa/actualiza el state cuando cambian los defaults (edit vs add)
+    const [loading, setLoading] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
         setForm({
             fullName: defaultValues?.fullName ?? "",
@@ -379,6 +382,52 @@ function AddMemberForm({ defaultValues, primaryButtonLabel = "Save Member" }) {
     }, [
         defaultValues
     ]);
+    const canSubmit = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useMemo"])(()=>{
+        return !!form.fullName?.trim() && !!form.email?.trim() && form.email.includes("@") && !loading;
+    }, [
+        form.fullName,
+        form.email,
+        loading
+    ]);
+    const handleSubmit = async ()=>{
+        if (!canSubmit) return;
+        setLoading(true);
+        try {
+            const payload = {
+                fullName: form.fullName?.trim(),
+                email: form.email?.trim().toLowerCase(),
+                phone: form.phone?.trim() || "",
+                dob: form.dob || "",
+                notes: form.notes || "",
+                plan: form.plan || "",
+                monthlyFee: form.monthlyFee || "",
+                expiresAt: form.expiresAt || "",
+                credits: form.credits || "",
+                status: form.status || "",
+                paymentMethod: form.paymentMethod || "",
+                startDate: form.startDate || ""
+            };
+            const res = await fetch("/api/admin/members", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json().catch(()=>({}));
+            if (!res.ok) {
+                alert(data?.error || "No se pudo guardar el miembro.");
+                setLoading(false);
+                return;
+            }
+            alert(`Invitación enviada a:\n${data?.member?.email}\n\nEl atleta debe abrir el email y crear su contraseña.`);
+            setLoading(false);
+        } catch (err) {
+            console.error(err);
+            alert("Error inesperado guardando el miembro.");
+            setLoading(false);
+        }
+    };
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
         className: "space-y-6",
         children: [
@@ -392,12 +441,12 @@ function AddMemberForm({ defaultValues, primaryButtonLabel = "Save Member" }) {
                             children: "Member Details"
                         }, void 0, false, {
                             fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                            lineNumber: 98,
+                            lineNumber: 153,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                        lineNumber: 97,
+                        lineNumber: 152,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -412,7 +461,7 @@ function AddMemberForm({ defaultValues, primaryButtonLabel = "Save Member" }) {
                                                 children: "Full Name"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                                lineNumber: 107,
+                                                lineNumber: 162,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$form$2f$input$2f$InputField$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -424,13 +473,13 @@ function AddMemberForm({ defaultValues, primaryButtonLabel = "Save Member" }) {
                                                         }))
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                                lineNumber: 108,
+                                                lineNumber: 163,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                        lineNumber: 106,
+                                        lineNumber: 161,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -439,7 +488,7 @@ function AddMemberForm({ defaultValues, primaryButtonLabel = "Save Member" }) {
                                                 children: "Email"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                                lineNumber: 118,
+                                                lineNumber: 173,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$form$2f$input$2f$InputField$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -452,13 +501,13 @@ function AddMemberForm({ defaultValues, primaryButtonLabel = "Save Member" }) {
                                                         }))
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                                lineNumber: 119,
+                                                lineNumber: 174,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                        lineNumber: 117,
+                                        lineNumber: 172,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -467,7 +516,7 @@ function AddMemberForm({ defaultValues, primaryButtonLabel = "Save Member" }) {
                                                 children: "Phone"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                                lineNumber: 130,
+                                                lineNumber: 185,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$form$2f$input$2f$InputField$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -479,13 +528,13 @@ function AddMemberForm({ defaultValues, primaryButtonLabel = "Save Member" }) {
                                                         }))
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                                lineNumber: 131,
+                                                lineNumber: 186,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                        lineNumber: 129,
+                                        lineNumber: 184,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -494,7 +543,7 @@ function AddMemberForm({ defaultValues, primaryButtonLabel = "Save Member" }) {
                                                 children: "Date of Birth"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                                lineNumber: 141,
+                                                lineNumber: 196,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$form$2f$input$2f$InputField$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -506,13 +555,13 @@ function AddMemberForm({ defaultValues, primaryButtonLabel = "Save Member" }) {
                                                         }))
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                                lineNumber: 142,
+                                                lineNumber: 197,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                        lineNumber: 140,
+                                        lineNumber: 195,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -522,48 +571,48 @@ function AddMemberForm({ defaultValues, primaryButtonLabel = "Save Member" }) {
                                                 children: "Notes"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                                lineNumber: 152,
+                                                lineNumber: 207,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$form$2f$input$2f$TextArea$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
                                                 rows: 6,
                                                 placeholder: "Notes (optional)",
                                                 value: form.notes,
-                                                onChange: (e)=>setForm((p)=>({
+                                                onChange: (value)=>setForm((p)=>({
                                                             ...p,
-                                                            notes: e.target.value
+                                                            notes: value
                                                         }))
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                                lineNumber: 153,
+                                                lineNumber: 208,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                        lineNumber: 151,
+                                        lineNumber: 206,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                lineNumber: 105,
+                                lineNumber: 160,
                                 columnNumber: 13
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                            lineNumber: 104,
+                            lineNumber: 159,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                        lineNumber: 103,
+                        lineNumber: 158,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                lineNumber: 96,
+                lineNumber: 151,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -576,12 +625,12 @@ function AddMemberForm({ defaultValues, primaryButtonLabel = "Save Member" }) {
                             children: "Membership & Billing"
                         }, void 0, false, {
                             fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                            lineNumber: 170,
+                            lineNumber: 223,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                        lineNumber: 169,
+                        lineNumber: 222,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -596,7 +645,7 @@ function AddMemberForm({ defaultValues, primaryButtonLabel = "Save Member" }) {
                                                 children: "Plan"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                                lineNumber: 178,
+                                                lineNumber: 231,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$form$2f$Select$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -609,13 +658,13 @@ function AddMemberForm({ defaultValues, primaryButtonLabel = "Save Member" }) {
                                                 defaultValue: form.plan
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                                lineNumber: 179,
+                                                lineNumber: 232,
                                                 columnNumber: 15
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                        lineNumber: 177,
+                                        lineNumber: 230,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -624,7 +673,7 @@ function AddMemberForm({ defaultValues, primaryButtonLabel = "Save Member" }) {
                                                 children: "Monthly Fee"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                                lineNumber: 188,
+                                                lineNumber: 241,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$form$2f$input$2f$InputField$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -636,13 +685,13 @@ function AddMemberForm({ defaultValues, primaryButtonLabel = "Save Member" }) {
                                                         }))
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                                lineNumber: 189,
+                                                lineNumber: 242,
                                                 columnNumber: 15
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                        lineNumber: 187,
+                                        lineNumber: 240,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -651,7 +700,7 @@ function AddMemberForm({ defaultValues, primaryButtonLabel = "Save Member" }) {
                                                 children: "Expires At"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                                lineNumber: 199,
+                                                lineNumber: 252,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$form$2f$input$2f$InputField$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -663,19 +712,19 @@ function AddMemberForm({ defaultValues, primaryButtonLabel = "Save Member" }) {
                                                         }))
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                                lineNumber: 200,
+                                                lineNumber: 253,
                                                 columnNumber: 15
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                        lineNumber: 198,
+                                        lineNumber: 251,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                lineNumber: 176,
+                                lineNumber: 229,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -688,7 +737,7 @@ function AddMemberForm({ defaultValues, primaryButtonLabel = "Save Member" }) {
                                                 children: "Credits / Sessions"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                                lineNumber: 212,
+                                                lineNumber: 265,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -711,17 +760,17 @@ function AddMemberForm({ defaultValues, primaryButtonLabel = "Save Member" }) {
                                                                 strokeLinejoin: "round"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                                                lineNumber: 227,
+                                                                lineNumber: 274,
                                                                 columnNumber: 21
                                                             }, this)
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                                            lineNumber: 220,
+                                                            lineNumber: 273,
                                                             columnNumber: 19
                                                         }, this)
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                                        lineNumber: 216,
+                                                        lineNumber: 269,
                                                         columnNumber: 17
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -736,12 +785,12 @@ function AddMemberForm({ defaultValues, primaryButtonLabel = "Save Member" }) {
                                                             className: "h-full w-full border-0 bg-white text-center text-sm text-gray-700 outline-none focus:ring-0 dark:bg-gray-900 dark:text-gray-400"
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                                            lineNumber: 238,
+                                                            lineNumber: 279,
                                                             columnNumber: 19
                                                         }, this)
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                                        lineNumber: 237,
+                                                        lineNumber: 278,
                                                         columnNumber: 17
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -761,29 +810,29 @@ function AddMemberForm({ defaultValues, primaryButtonLabel = "Save Member" }) {
                                                                 strokeLinejoin: "round"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                                                lineNumber: 259,
+                                                                lineNumber: 294,
                                                                 columnNumber: 21
                                                             }, this)
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                                            lineNumber: 252,
+                                                            lineNumber: 293,
                                                             columnNumber: 19
                                                         }, this)
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                                        lineNumber: 248,
+                                                        lineNumber: 289,
                                                         columnNumber: 17
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                                lineNumber: 215,
+                                                lineNumber: 268,
                                                 columnNumber: 15
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                        lineNumber: 211,
+                                        lineNumber: 264,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -792,7 +841,7 @@ function AddMemberForm({ defaultValues, primaryButtonLabel = "Save Member" }) {
                                                 children: "Status"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                                lineNumber: 272,
+                                                lineNumber: 301,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$form$2f$Select$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -805,19 +854,19 @@ function AddMemberForm({ defaultValues, primaryButtonLabel = "Save Member" }) {
                                                 defaultValue: form.status
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                                lineNumber: 273,
+                                                lineNumber: 302,
                                                 columnNumber: 15
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                        lineNumber: 271,
+                                        lineNumber: 300,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                lineNumber: 210,
+                                lineNumber: 263,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -829,7 +878,7 @@ function AddMemberForm({ defaultValues, primaryButtonLabel = "Save Member" }) {
                                                 children: "Payment Method"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                                lineNumber: 284,
+                                                lineNumber: 313,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$form$2f$Select$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -842,13 +891,13 @@ function AddMemberForm({ defaultValues, primaryButtonLabel = "Save Member" }) {
                                                 defaultValue: form.paymentMethod
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                                lineNumber: 285,
+                                                lineNumber: 314,
                                                 columnNumber: 15
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                        lineNumber: 283,
+                                        lineNumber: 312,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -857,7 +906,7 @@ function AddMemberForm({ defaultValues, primaryButtonLabel = "Save Member" }) {
                                                 children: "Start Date"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                                lineNumber: 296,
+                                                lineNumber: 325,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$form$2f$input$2f$InputField$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -869,31 +918,31 @@ function AddMemberForm({ defaultValues, primaryButtonLabel = "Save Member" }) {
                                                         }))
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                                lineNumber: 297,
+                                                lineNumber: 326,
                                                 columnNumber: 15
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                        lineNumber: 295,
+                                        lineNumber: 324,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                lineNumber: 282,
+                                lineNumber: 311,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                        lineNumber: 175,
+                        lineNumber: 228,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                lineNumber: 168,
+                lineNumber: 221,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -906,12 +955,12 @@ function AddMemberForm({ defaultValues, primaryButtonLabel = "Save Member" }) {
                             children: "Profile Photo"
                         }, void 0, false, {
                             fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                            lineNumber: 312,
+                            lineNumber: 341,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                        lineNumber: 311,
+                        lineNumber: 340,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -941,17 +990,17 @@ function AddMemberForm({ defaultValues, primaryButtonLabel = "Save Member" }) {
                                                         strokeLinejoin: "round"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                                        lineNumber: 332,
+                                                        lineNumber: 355,
                                                         columnNumber: 21
                                                     }, this)
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                                    lineNumber: 325,
+                                                    lineNumber: 354,
                                                     columnNumber: 19
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                                lineNumber: 324,
+                                                lineNumber: 353,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -962,25 +1011,25 @@ function AddMemberForm({ defaultValues, primaryButtonLabel = "Save Member" }) {
                                                         children: "Click to upload"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                                        lineNumber: 342,
+                                                        lineNumber: 365,
                                                         columnNumber: 19
                                                     }, this),
                                                     "or drag and drop SVG, PNG, JPG or GIF (MAX. 800x400px)"
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                                lineNumber: 341,
+                                                lineNumber: 364,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                        lineNumber: 323,
+                                        lineNumber: 352,
                                         columnNumber: 15
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                    lineNumber: 322,
+                                    lineNumber: 351,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -989,24 +1038,24 @@ function AddMemberForm({ defaultValues, primaryButtonLabel = "Save Member" }) {
                                     className: "hidden"
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                                    lineNumber: 349,
+                                    lineNumber: 372,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                            lineNumber: 318,
+                            lineNumber: 347,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                        lineNumber: 317,
+                        lineNumber: 346,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                lineNumber: 310,
+                lineNumber: 339,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1014,30 +1063,33 @@ function AddMemberForm({ defaultValues, primaryButtonLabel = "Save Member" }) {
                 children: [
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2f$Button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
                         variant: "outline",
+                        type: "button",
                         children: "Cancel"
                     }, void 0, false, {
                         fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                        lineNumber: 355,
+                        lineNumber: 378,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2f$Button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
                         variant: "primary",
-                        children: primaryButtonLabel
+                        onClick: handleSubmit,
+                        disabled: !canSubmit,
+                        children: loading ? "Saving..." : primaryButtonLabel
                     }, void 0, false, {
                         fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                        lineNumber: 356,
+                        lineNumber: 381,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/components/members/AddMemberForm.tsx",
-                lineNumber: 354,
+                lineNumber: 377,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/components/members/AddMemberForm.tsx",
-        lineNumber: 94,
+        lineNumber: 149,
         columnNumber: 5
     }, this);
 }

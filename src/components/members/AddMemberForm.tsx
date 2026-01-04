@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import Label from "@/components/form/Label";
 import Input from "@/components/form/input/InputField";
@@ -69,10 +69,8 @@ export default function AddMemberForm({
     startDate: "",
   });
 
+  const [loading, setLoading] = useState(false);
 
-  console.log("defaultValues", defaultValues);
-
-  // Inicializa/actualiza el state cuando cambian los defaults (edit vs add)
   useEffect(() => {
     setForm({
       fullName: defaultValues?.fullName ?? "",
@@ -89,6 +87,63 @@ export default function AddMemberForm({
       startDate: defaultValues?.startDate ?? "",
     });
   }, [defaultValues]);
+
+  const canSubmit = useMemo(() => {
+    return (
+      !!form.fullName?.trim() &&
+      !!form.email?.trim() &&
+      form.email!.includes("@") &&
+      !loading
+    );
+  }, [form.fullName, form.email, loading]);
+
+  const handleSubmit = async () => {
+    if (!canSubmit) return;
+
+    setLoading(true);
+    try {
+      const payload = {
+        fullName: form.fullName?.trim(),
+        email: form.email?.trim().toLowerCase(),
+        phone: form.phone?.trim() || "",
+        dob: form.dob || "",
+        notes: form.notes || "",
+
+        plan: form.plan || "",
+        monthlyFee: form.monthlyFee || "",
+        expiresAt: form.expiresAt || "",
+
+        credits: form.credits || "",
+        status: form.status || "",
+        paymentMethod: form.paymentMethod || "",
+        startDate: form.startDate || "",
+      };
+
+      const res = await fetch("/api/admin/members", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        alert(data?.error || "No se pudo guardar el miembro.");
+        setLoading(false);
+        return;
+      }
+
+      alert(
+        `Invitación enviada a:\n${data?.member?.email}\n\nEl atleta debe abrir el email y crear su contraseña.`
+      );
+
+      setLoading(false);
+    } catch (err) {
+      console.error(err);
+      alert("Error inesperado guardando el miembro.");
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -215,20 +270,8 @@ export default function AddMemberForm({
                   type="button"
                   className="inline-flex h-11 w-11 items-center justify-center bg-white text-gray-700 hover:bg-gray-100 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="25"
-                    height="24"
-                    viewBox="0 0 25 24"
-                    fill="none"
-                  >
-                    <path
-                      d="M6.66699 12H18.6677"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
+                  <svg xmlns="http://www.w3.org/2000/svg" width="25" height="24" viewBox="0 0 25 24" fill="none">
+                    <path d="M6.66699 12H18.6677" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </button>
 
@@ -247,20 +290,8 @@ export default function AddMemberForm({
                   type="button"
                   className="inline-flex h-11 w-11 items-center justify-center bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="25"
-                    height="24"
-                    viewBox="0 0 25 24"
-                    fill="none"
-                  >
-                    <path
-                      d="M6.66699 12.0002H18.6677M12.6672 6V18.0007"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
+                  <svg xmlns="http://www.w3.org/2000/svg" width="25" height="24" viewBox="0 0 25 24" fill="none">
+                    <path d="M6.66699 12.0002H18.6677M12.6672 6V18.0007" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </button>
               </div>
@@ -320,13 +351,7 @@ export default function AddMemberForm({
             <div className="flex justify-center p-10">
               <div className="flex max-w-[260px] flex-col items-center gap-4">
                 <div className="inline-flex h-13 w-13 items-center justify-center rounded-full border border-gray-200 text-gray-700 transition dark:border-gray-800 dark:text-gray-400">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                  >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
                     <path
                       d="M20.0004 16V18.5C20.0004 19.3284 19.3288 20 18.5004 20H5.49951C4.67108 20 3.99951 19.3284 3.99951 18.5V16M12.0015 4L12.0015 16M7.37454 8.6246L11.9994 4.00269L16.6245 8.6246"
                       stroke="currentColor"
@@ -350,8 +375,16 @@ export default function AddMemberForm({
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-        <Button variant="outline">Cancel</Button>
-        <Button variant="primary">{primaryButtonLabel}</Button>
+        <Button variant="outline" type="button">
+          Cancel
+        </Button>
+        <Button
+          variant="primary"
+          onClick={handleSubmit}
+          disabled={!canSubmit}
+        >
+          {loading ? "Saving..." : primaryButtonLabel}
+        </Button>
       </div>
     </div>
   );

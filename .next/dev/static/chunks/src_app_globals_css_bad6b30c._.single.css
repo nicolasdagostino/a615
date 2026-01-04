@@ -669,10 +669,6 @@
     right: calc(var(--spacing) * -6);
   }
 
-  .-right-\[240px\] {
-    right: -240px;
-  }
-
   .right-0 {
     right: calc(var(--spacing) * 0);
   }
@@ -1446,10 +1442,6 @@
     height: 450px;
   }
 
-  .h-\[480px\] {
-    height: 480px;
-  }
-
   .h-\[490px\] {
     height: 490px;
   }
@@ -1732,10 +1724,6 @@
 
   .w-\[300px\] {
     width: 300px;
-  }
-
-  .w-\[350px\] {
-    width: 350px;
   }
 
   .w-\[360px\] {
@@ -2572,11 +2560,6 @@
     border-left-width: 1px;
   }
 
-  .border-l-4 {
-    border-left-style: var(--tw-border-style);
-    border-left-width: 4px;
-  }
-
   .border-dashed {
     --tw-border-style: dashed;
     border-style: dashed;
@@ -3023,10 +3006,6 @@
     background-color: var(--color-orange-100);
   }
 
-  .bg-orange-400 {
-    background-color: var(--color-orange-400);
-  }
-
   .bg-orange-500\/\[0\.08\] {
     background-color: #fb651414;
   }
@@ -3340,10 +3319,6 @@
 
   .px-4 {
     padding-inline: calc(var(--spacing) * 4);
-  }
-
-  .px-4\.5 {
-    padding-inline: calc(var(--spacing) * 4.5);
   }
 
   .px-5 {
@@ -4950,12 +4925,6 @@
   }
 
   @media (min-width: 640px) {
-    .sm\:w-\[240px\] {
-      width: 240px;
-    }
-  }
-
-  @media (min-width: 640px) {
     .sm\:w-\[300px\] {
       width: 300px;
     }
@@ -4964,12 +4933,6 @@
   @media (min-width: 640px) {
     .sm\:w-\[320px\] {
       width: 320px;
-    }
-  }
-
-  @media (min-width: 640px) {
-    .sm\:w-\[361px\] {
-      width: 361px;
     }
   }
 
@@ -5461,12 +5424,6 @@
   }
 
   @media (min-width: 768px) {
-    .md\:col-span-4 {
-      grid-column: span 4 / span 4;
-    }
-  }
-
-  @media (min-width: 768px) {
     .md\:w-\[668px\] {
       width: 668px;
     }
@@ -5475,12 +5432,6 @@
   @media (min-width: 768px) {
     .md\:grid-cols-2 {
       grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-  }
-
-  @media (min-width: 768px) {
-    .md\:grid-cols-4 {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
     }
   }
 
@@ -5519,12 +5470,6 @@
   @media (min-width: 1024px) {
     .lg\:top-1\/2 {
       top: 50%;
-    }
-  }
-
-  @media (min-width: 1024px) {
-    .lg\:right-0 {
-      right: calc(var(--spacing) * 0);
     }
   }
 
