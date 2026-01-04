@@ -99,3 +99,4 @@ Read more: https://nextjs.org/docs/app/api-reference/components/image#loading
 [00:20:08.595] Browser WARN    Image with src "/images/shape/grid-01.svg" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
 Read more: https://nextjs.org/docs/app/api-reference/components/image#loading
 [00:20:21.933] Browser WARN    Image with src "http://localhost:3000/images/logo/logo.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[00:31:38.124] Server  LOG      ✓ Compiled in 128ms

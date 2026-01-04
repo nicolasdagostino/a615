@@ -375,7 +375,7 @@ export default function AddMemberForm({
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-        <Button variant="outline" type="button">
+        <Button variant="outline">
           Cancel
         </Button>
         <Button
