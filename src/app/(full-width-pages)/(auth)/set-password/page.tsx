@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import SetPasswordForm from "@/components/auth/SetPasswordForm";
 import { Metadata } from "next";
 
