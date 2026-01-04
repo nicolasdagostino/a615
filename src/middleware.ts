@@ -23,10 +23,12 @@ export async function middleware(request: NextRequest) {
   const required = requiredRoleForPath(pathname);
   if (!required) return response;
 
+  // 1) Esto dispara el refresh automático si el access_token expiró (si hay refresh token)
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
+  // 2) No logueado => /signin
   if (!user) {
     const url = request.nextUrl.clone();
     url.pathname = "/signin";
@@ -34,13 +36,15 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  const { data: profile } = await supabase
+  // 3) Perfil/rol (hardening: si no hay rol, hacemos signOut y mandamos a /signin)
+  const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("role")
     .eq("id", user.id)
     .single();
 
-  if (!profile?.role) {
+  if (profileError || !profile?.role) {
+    await supabase.auth.signOut();
     const url = request.nextUrl.clone();
     url.pathname = "/signin";
     return NextResponse.redirect(url);
@@ -48,6 +52,7 @@ export async function middleware(request: NextRequest) {
 
   const role = profile.role as Role;
 
+  // 4) Autorización por rol
   const allowed =
     (required === "admin" && role === "admin") ||
     (required === "coach" && (role === "coach" || role === "admin")) ||
@@ -57,6 +62,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(homeForRole(role), request.url));
   }
 
+  // Importantísimo: devolver "response" para que salgan cookies actualizadas si hubo refresh
   return response;
 }
 
