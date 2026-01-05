@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 26, "column": 0}, "map": {"version":3,"sources":["file:///Users/nicolasdagostino/Desktop/Proyecto/A615/src/app/%28admin%29/page.tsx"],"sourcesContent":["import { redirect } from \"next/navigation\";\n\nexport default function Page() {\n  redirect(\"/admin/dashboard\");\n}\n"],"names":[],"mappings":";;;;AAAA;AAAA;;AAEe,SAAS;IACtB,IAAA,iMAAQ,EAAC;AACX"}}]
-}
