@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import Label from "@/components/form/Label";
 import Input from "@/components/form/input/InputField";
@@ -27,14 +28,18 @@ export type MemberFormDefaults = {
 };
 
 type Props = {
-  defaultValues?: MemberFormDefaults;
-  primaryButtonLabel?: string;
-};
+    memberId?: string;
+    defaultValues?: MemberFormDefaults;
+    primaryButtonLabel?: string;
+  };
 
 export default function AddMemberForm({
-  defaultValues,
-  primaryButtonLabel = "Save Member",
-}: Props) {
+    memberId,
+    defaultValues,
+    primaryButtonLabel = "Save Member",
+  }: Props) {
+  const router = useRouter();
+
   const plans = [
     { value: "unlimited", label: "Unlimited" },
     { value: "3x", label: "3x/week" },
@@ -131,13 +136,15 @@ export default function AddMemberForm({
         startDate: form.startDate || "",
       };
 
-      const res = await fetch("/api/admin/members", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      const method = memberId ? "PATCH" : "POST";
+        const finalPayload: any = memberId ? { id: memberId, ...payload } : payload;
 
-      const data = await res.json().catch(() => ({}));
+        const res = await fetch("/api/admin/members", {
+          method,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(finalPayload),
+        });
+const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
         setFeedback({
@@ -151,11 +158,12 @@ export default function AddMemberForm({
 
       setFeedback({
           variant: "success",
-          title: "Invitation sent",
-          message: `Invitation sent to: ${data?.member?.email}. The athlete must open the email and create their password.`,
+          title: memberId ? "Member updated" : "Invitation sent",
+          message: memberId
+            ? "Member updated successfully."
+            : `Invitation sent to: ${data?.member?.email}. The athlete must open the email and create their password.`,
         });
-
-      setLoading(false);
+setLoading(false);
     } catch (err) {
       console.error(err);
       setFeedback({ variant: "error", title: "Unexpected error", message: "Unexpected error while saving the member." });

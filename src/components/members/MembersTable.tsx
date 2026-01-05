@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
 
 import {
@@ -17,7 +17,7 @@ import { Modal } from "@/components/ui/modal";
 import { useModal } from "@/hooks/useModal";
 
 type MemberRow = {
-  id: number;
+  id: string;
   user: {
     name: string;
     email: string;
@@ -25,80 +25,9 @@ type MemberRow = {
   plan: string;
   fee: string;
   expiresAt: string; // "YYYY-MM-DD"
+  status?: string;
 };
 
-const membersMock: MemberRow[] = [
-  {
-    id: 1,
-    user: { name: "Lindsey Curtis", email: "lindsey@gmail.com" },
-    plan: "Unlimited",
-    fee: "€79",
-    expiresAt: "2026-01-15",
-  },
-  {
-    id: 2,
-    user: { name: "Kaiya George", email: "kaiya@gmail.com" },
-    plan: "3x/week",
-    fee: "€59",
-    expiresAt: "2026-01-06",
-  },
-  {
-    id: 3,
-    user: { name: "Zain Geidt", email: "zain@gmail.com" },
-    plan: "Open Box",
-    fee: "€49",
-    expiresAt: "2025-12-28",
-  },
-  {
-    id: 4,
-    user: { name: "Abram Schleifer", email: "abram@gmail.com" },
-    plan: "Unlimited",
-    fee: "€79",
-    expiresAt: "2026-02-01",
-  },
-  {
-    id: 5,
-    user: { name: "Carla George", email: "carla@gmail.com" },
-    plan: "2x/week",
-    fee: "€49",
-    expiresAt: "2026-01-03",
-  },
-  {
-    id: 6,
-    user: { name: "Emery Culhane", email: "emery@gmail.com" },
-    plan: "Drop-in Pack",
-    fee: "€30",
-    expiresAt: "2026-01-20",
-  },
-  {
-    id: 7,
-    user: { name: "Livia Donin", email: "livia@gmail.com" },
-    plan: "Unlimited",
-    fee: "€79",
-    expiresAt: "2026-01-09",
-  },
-  {
-    id: 8,
-    user: { name: "Lincoln Herwitz", email: "lincoln@gmail.com" },
-    plan: "3x/week",
-    fee: "€59",
-    expiresAt: "2026-01-30",
-  },
-  {
-    id: 9,
-    user: { name: "Miracle Bator", email: "miracle@gmail.com" },
-    plan: "Open Box",
-    fee: "€49",
-    expiresAt: "2026-01-02",
-  },
-  {
-    id: 10,
-    user: { name: "Ekstrom Bothman", email: "ekstrom@gmail.com" },
-    plan: "Unlimited",
-    fee: "€79",
-    expiresAt: "2026-02-10",
-  },
-];
 
 function toStartOfDay(date: Date) {
   const d = new Date(date);
@@ -127,7 +56,45 @@ export default function MembersTable() {
   const [isChecked, setIsChecked] = useState(false);
 
   // mock state para poder eliminar filas
-  const [members, setMembers] = useState<MemberRow[]>(membersMock);
+  const [members, setMembers] = useState<MemberRow[]>([]);
+  useEffect(() => {
+    let alive = true;
+
+    async function loadMembers() {
+      try {
+        const res = await fetch("/api/admin/members");
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data?.error || "Failed to load members");
+        }
+
+        if (!alive) return;
+
+        setMembers(
+          (data.members || []).map((m: any) => ({
+            id: m.id,
+            user: {
+              name: m.user?.name || "",
+              email: m.user?.email || "",
+            },
+            plan: m.plan || "",
+            fee: m.fee ? `€${m.fee}` : "",
+            expiresAt: m.expiresAt || "",
+            status: m.status || "",
+          }))
+        );
+      } catch (e) {
+        console.error("Failed to load members", e);
+      }
+    }
+
+    loadMembers();
+    return () => {
+      alive = false;
+    };
+  }, []);
+
 
   const deleteModal = useModal();
   const [memberToDelete, setMemberToDelete] = useState<MemberRow | null>(null);
@@ -138,7 +105,7 @@ export default function MembersTable() {
   const tableRowData = useMemo(() => {
     return members.map((m) => ({
       ...m,
-      status: getStatus(m.expiresAt),
+      status: (m as any).status ? (m as any).status : getStatus(m.expiresAt),
     }));
   }, [members]);
 
@@ -172,22 +139,34 @@ export default function MembersTable() {
     deleteModal.openModal();
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (!memberToDelete) return;
 
     const deletingId = memberToDelete.id;
 
-    setMembers((prev) => prev.filter((m) => m.id !== deletingId));
+    try {
+      const url = "/api/admin/members?id=" + encodeURIComponent(deletingId);
+      const res = await fetch(url, { method: "DELETE" });
+      const data = await res.json().catch(() => ({}));
 
-    // Ajuste de página si borrás el último item de la página actual
-    setCurrentPage((prevPage) => {
-      const newCount = tableRowData.length - 1;
-      const newTotalPages = Math.max(1, Math.ceil(newCount / rowsPerPage));
-      return Math.min(prevPage, newTotalPages);
-    });
+      if (!res.ok) {
+        throw new Error(String((data as any)?.error || "Failed to delete member"));
+      }
 
-    deleteModal.closeModal();
-    setMemberToDelete(null);
+      setMembers((prev) => prev.filter((m) => m.id !== deletingId));
+
+      // Ajuste de página si borrás el último item de la página actual
+      setCurrentPage((prevPage) => {
+        const newCount = members.length - 1;
+        const newTotalPages = Math.max(1, Math.ceil(newCount / rowsPerPage));
+        return Math.min(prevPage, newTotalPages);
+      });
+    } catch (e) {
+      console.error(e);
+    } finally {
+      deleteModal.closeModal();
+      setMemberToDelete(null);
+    }
   };
 
   return (
