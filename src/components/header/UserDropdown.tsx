@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { createClient } from "@/lib/supabase/client";
@@ -11,6 +12,8 @@ export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
 
   const supabase = useMemo(() => createClient(), []);
+
+  const router = useRouter();
 
   const [displayName, setDisplayName] = useState("User");
   const [fullName, setFullName] = useState("User");
@@ -22,9 +25,16 @@ export default function UserDropdown() {
 
   function closeDropdown() {
     setIsOpen(false);
+
   }
 
-  useEffect(() => {
+  
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.replace("/signin");
+  };
+
+useEffect(() => {
     let isMounted = true;
 
     async function load() {
@@ -69,13 +79,6 @@ export default function UserDropdown() {
     };
   }, [supabase]);
 
-  const handleSignOut = async () => {
-    try {
-      await supabase.auth.signOut();
-    } finally {
-      window.location.href = "/signin";
-    }
-  };
 
   return (
     <div className="relative">
