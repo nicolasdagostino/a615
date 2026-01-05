@@ -1,13 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import ComponentCard from "@/components/common/ComponentCard";
 import AddMemberForm, { type MemberFormDefaults } from "@/components/members/AddMemberForm";
 
-export default function EditMemberPage({ params }: { params: { id: string } }) {
-  const id = params?.id;
-
-  const [loading, setLoading] = useState(true);
+export default function EditMemberPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
+const [loading, setLoading] = useState(true);
   const [defaults, setDefaults] = useState<MemberFormDefaults | null>(null);
 
   useEffect(() => {

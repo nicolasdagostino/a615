@@ -4,6 +4,56 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 type AppRole = "admin" | "coach" | "athlete";
 
+async function assertAdmin() {
+  const supabase = await createClient();
+
+  const { data: userData } = await supabase.auth.getUser();
+  const user = userData.user;
+  if (!user) {
+    return { ok: false as const, res: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
+  }
+
+  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
+  if (profile?.role !== "admin") {
+    return { ok: false as const, res: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
+  }
+
+  return { ok: true as const, userId: user.id };
+}
+
+/**
+ * GET /api/admin/users
+ * Devuelve staff (admin|coach) para unificar en /admin/members
+ */
+export async function GET() {
+  try {
+    const auth = await assertAdmin();
+    if (!auth.ok) return auth.res;
+
+    const admin = createAdminClient();
+
+    const { data, error } = await admin
+      .from("profiles")
+      .select("id, full_name, email, role, phone")
+      .in("role", ["admin", "coach"])
+      .order("full_name", { ascending: true });
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+
+    const rows = (data || []).map((p: any) => ({
+      id: String(p.id),
+      fullName: p.full_name || "—",
+      email: p.email || "—",
+      role: p.role || "coach",
+      phone: p.phone || "",
+    }));
+
+    return NextResponse.json({ ok: true, users: rows });
+  } catch (e: any) {
+    return NextResponse.json({ error: e?.message || "Server error" }, { status: 500 });
+  }
+}
+
 export async function POST(req: Request) {
   try {
     const supabase = await createClient();

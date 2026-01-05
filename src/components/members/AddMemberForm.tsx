@@ -24,6 +24,8 @@ export type MemberFormDefaults = {
   status?: string;
   paymentMethod?: string;
   startDate?: string; // YYYY-MM-DD
+
+    role?: "admin" | "coach" | "athlete";
 };
 
 type Props = {
@@ -53,7 +55,13 @@ export default function AddMemberForm({
     { value: "expired", label: "Vencida" },
   ];
 
-  const paymentMethods = [
+  const roleOptions = [
+      { value: "athlete", label: "Athlete" },
+      { value: "coach", label: "Coach" },
+      { value: "admin", label: "Admin" },
+    ];
+
+    const paymentMethods = [
     { value: "cash", label: "Cash" },
     { value: "card", label: "Card" },
     { value: "transfer", label: "Transfer" },
@@ -72,6 +80,7 @@ export default function AddMemberForm({
     status: "",
     paymentMethod: "",
     startDate: "",
+      role: "athlete",
   });
 
   const [loading, setLoading] = useState(false);
@@ -91,6 +100,7 @@ export default function AddMemberForm({
       status: defaultValues?.status ?? "",
       paymentMethod: defaultValues?.paymentMethod ?? "",
       startDate: defaultValues?.startDate ?? "",
+      role: (defaultValues?.role as any) ?? "athlete",
     });
   }, [defaultValues]);
 
@@ -104,13 +114,10 @@ export default function AddMemberForm({
   }, [form.fullName, form.email, loading]);
 
   const handleCancel = () => {
-      setFeedback(null);
-      setForm({
-        fullName: "", email: "", phone: "", dob: "", notes: "",
-        plan: "", monthlyFee: "", expiresAt: "", credits: "",
-        status: "", paymentMethod: "", startDate: "",
-      });
-    };
+    setFeedback(null);
+    router.push("/admin/members");
+    router.refresh();
+  };
 
     const handleSubmit = async () => {
     if (!canSubmit) return;
@@ -118,7 +125,9 @@ export default function AddMemberForm({
     setFeedback(null);
     setLoading(true);
     try {
-      const payload = {
+      const role = (form.role || "athlete") as "admin" | "coach" | "athlete";
+
+        const payload = {
         fullName: form.fullName?.trim(),
         email: form.email?.trim().toLowerCase(),
         phone: form.phone?.trim() || "",
@@ -138,11 +147,38 @@ export default function AddMemberForm({
       const method = memberId ? "PATCH" : "POST";
         const finalPayload: any = memberId ? { id: memberId, ...payload } : payload;
 
-        const res = await fetch("/api/admin/members", {
-          method,
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(finalPayload),
-        });
+        let res: Response;
+
+        // Staff (admin/coach) -> /api/admin/users (invite)
+        if (role === "admin" || role === "coach") {
+          const staffPayload = {
+            fullName: payload.fullName,
+            email: payload.email,
+            role,
+            phone: payload.phone || "",
+          };
+
+          res = await fetch("/api/admin/users", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(staffPayload),
+          });
+        } else {
+          // Athlete -> members (create/update)
+          if (memberId) {
+            res = await fetch("/api/admin/members", {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ id: memberId, ...payload }),
+            });
+          } else {
+            res = await fetch("/api/admin/members", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            });
+          }
+        }
 const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
