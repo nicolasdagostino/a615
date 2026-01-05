@@ -25,8 +25,8 @@ type MemberRow = {
   plan: string;
   fee: string;
   expiresAt: string; // "YYYY-MM-DD"
-  status?: string;
-};
+    role: "admin" | "coach" | "athlete";
+    status?: string;};
 
 
 function toStartOfDay(date: Date) {
@@ -61,35 +61,57 @@ export default function MembersTable() {
     let alive = true;
 
     async function loadMembers() {
-      try {
-        const res = await fetch("/api/admin/members");
-        const data = await res.json();
+        try {
+          const [resMembers, resUsers] = await Promise.all([
+            fetch("/api/admin/members"),
+            fetch("/api/admin/users"),
+          ]);
 
-        if (!res.ok) {
-          throw new Error(data?.error || "Failed to load members");
-        }
+          const dataMembers = await resMembers.json().catch(() => ({}));
+          const dataUsers = await resUsers.json().catch(() => ({}));
 
-        if (!alive) return;
+          if (!resMembers.ok) {
+            throw new Error((dataMembers as any)?.error || "Failed to load members");
+          }
+          if (!resUsers.ok) {
+            throw new Error((dataUsers as any)?.error || "Failed to load staff");
+          }
 
-        setMembers(
-          (data.members || []).map((m: any) => ({
+          if (!alive) return;
+
+          const athletes = (dataMembers.members || []).map((m: any) => ({
             id: m.id,
             user: {
               name: m.user?.name || "",
               email: m.user?.email || "",
             },
-            plan: m.plan || "",
-            fee: m.fee ? `€${m.fee}` : "",
+            plan: m.plan || "—",
+            fee: m.fee ? `€${m.fee}` : "—",
             expiresAt: m.expiresAt || "",
+            role: "athlete" as const,
             status: m.status || "",
-          }))
-        );
-      } catch (e) {
-        console.error("Failed to load members", e);
-      }
-    }
+          }));
 
-    loadMembers();
+          const staff = (dataUsers.users || []).map((u: any) => ({
+            id: u.id,
+            user: {
+              name: u.fullName || "—",
+              email: u.email || "—",
+            },
+            plan: "—",
+            fee: "—",
+            expiresAt: "",
+            role: (u.role || "coach") as "admin" | "coach",
+            status: "—",
+          }));
+
+          setMembers([...athletes, ...staff]);
+        } catch (e) {
+          console.error("Failed to load members/staff", e);
+        }
+      }
+
+      loadMembers();
     return () => {
       alive = false;
     };
@@ -408,7 +430,11 @@ export default function MembersTable() {
                     </TableCell>
 
                     <TableCell className="px-4 py-4 font-normal text-gray-800 border border-gray-100 dark:border-white/[0.05] text-theme-sm dark:text-white/90 whitespace-nowrap">
-                      <Badge
+                      <span className="capitalize">{item.role}</span>
+                      </TableCell>
+
+                      <TableCell className="px-4 py-4 font-normal text-gray-800 border border-gray-100 dark:border-white/[0.05] text-theme-sm dark:text-white/90 whitespace-nowrap">
+                        <Badge
                         size="sm"
                         color={
                           item.status === "Activa"
