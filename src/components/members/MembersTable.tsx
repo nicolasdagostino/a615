@@ -25,8 +25,9 @@ type MemberRow = {
   plan: string;
   fee: string;
   expiresAt: string; // "YYYY-MM-DD"
-    role: "admin" | "coach" | "athlete";
-    status?: string;};
+  role: "admin" | "coach" | "athlete";
+  status?: string; // status de membership (athlete) o "—" (staff)
+};
 
 
 function toStartOfDay(date: Date) {
@@ -300,7 +301,21 @@ export default function MembersTable() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableCell
+                  <TableCell className="px-4 py-3">
+              <Badge
+                variant={
+                  (item as any).role === "admin"
+                    ? "success"
+                    : (item as any).role === "coach"
+                    ? "warning"
+                    : "info"
+                }
+              >
+                {String((item as any).role || "athlete").toUpperCase()}
+              </Badge>
+            </TableCell>
+            <TableCell className="px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">Role</TableCell>
+            <TableCell
                     isHeader
                     className="px-4 py-3 border border-gray-100 dark:border-white/[0.05]"
                   >
