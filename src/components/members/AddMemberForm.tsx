@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-
 import Label from "@/components/form/Label";
 import Input from "@/components/form/input/InputField";
 import Select from "@/components/form/Select";
@@ -164,6 +163,9 @@ const data = await res.json().catch(() => ({}));
             : `Invitation sent to: ${data?.member?.email}. The athlete must open the email and create their password.`,
         });
 setLoading(false);
+
+        router.push("/admin/members");
+        router.refresh();
     } catch (err) {
       console.error(err);
       setFeedback({ variant: "error", title: "Unexpected error", message: "Unexpected error while saving the member." });
