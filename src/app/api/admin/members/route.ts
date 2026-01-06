@@ -79,7 +79,8 @@ export async function GET(req: Request) {
           .from("members")
           .select(
             `
-              id, full_name, email, phone, dob, notes,
+              id, user_id, full_name, email, phone, dob, notes,
+                user_id,
               memberships:memberships ( plan, monthly_fee, start_date, expires_at, credits, status, payment_method )
             `
           )
@@ -89,7 +90,15 @@ export async function GET(req: Request) {
         if (oneErr) return NextResponse.json({ error: oneErr.message }, { status: 400 });
         if (!one) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-        const membership = Array.isArray((one as any).memberships)
+        
+          const uid = String((one as any).user_id || "").trim();
+          let role = "";
+          if (uid) {
+            const { data: prof } = await admin.from("profiles").select("role").eq("id", uid).single();
+            role = String((prof as any)?.role || "").trim();
+          }
+
+          const membership = Array.isArray((one as any).memberships)
           ? (one as any).memberships[0]
           : (one as any).memberships || null;
 
@@ -116,7 +125,8 @@ export async function GET(req: Request) {
                 : String(membership.credits),
             status: (membership?.status || "").trim(),
             paymentMethod: (membership?.payment_method || "").trim(),
-          },
+              role,
+            },
         });
       }
 
@@ -156,28 +166,44 @@ export async function GET(req: Request) {
           (profs || []).map((p: any) => [String(p.id), String(p.role || "").trim()])
         );
       }
+        // Usamos todos los roles (admin/coach/athlete) y excluimos rows sin user_id
+        const allowed = new Set(["admin", "coach", "athlete"]);
 
-      // Excluimos rows sin user_id para evitar "personas sin rol"
-      const filtered = members.filter((m) => {
-        const uid = m.user_id ? String(m.user_id) : "";
-        if (!uid) return false;
-        return rolesById[uid] === "athlete";
-      });
+        const filtered = members.filter((m: any) => {
+          const uid = m.user_id ? String(m.user_id) : "";
+          if (!uid) return false;
+          const r = (rolesById[uid] || "").trim();
+          return allowed.has(r);
+        });
 
-      const rows = filtered.map((m: any) => {
+        const rows = filtered.map((m: any) => {
+
         const membership = Array.isArray(m.memberships) ? m.memberships[0] : m.memberships || null;
+          const uid = m.user_id ? String(m.user_id) : "";
+          const role = (uid && rolesById[uid] ? rolesById[uid] : "athlete") as "admin" | "coach" | "athlete";
 
-        return {
-          id: String(m.id),
-          user: {
-            name: (m.full_name || "—") as string,
-            email: (m.email || "—") as string,
-          },
-          plan: (membership?.plan || "—") as string,
-          fee: formatFee(membership?.monthly_fee ?? null),
-          expiresAt: (membership?.expires_at || "—") as string,
-          status: mapStatusToUi(membership?.status ?? null),
-        };
+          const plan =
+            (membership?.plan || "").trim() ||
+            ((role === "admin" || role === "coach") ? "Free" : "—");
+
+          const expiresAt = (membership?.expires_at || "—") as string;
+
+          const status =
+            (role === "admin")
+              ? "—"
+              : mapStatusToUi(membership?.status ?? null);
+
+          return {
+            id: String(m.id),
+            user: {
+              name: (m.full_name || "—") as string,
+              email: (m.email || "—") as string,
+            },
+            plan,
+            expiresAt,
+            role,
+            status,
+          };
       });
 return NextResponse.json({ ok: true, members: rows });
   } catch (e: any) {

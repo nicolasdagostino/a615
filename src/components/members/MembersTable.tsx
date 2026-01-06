@@ -58,89 +58,84 @@ export default function MembersTable() {
   const inputBaseClass = "dark:bg-dark-900 h-9 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800";
   const [searchQuery, setSearchQuery] = useState("");
   const [isChecked, setIsChecked] = useState(false);
-
-  
   const [roleFilter, setRoleFilter] = useState<"all" | "admin" | "coach" | "athlete">("all");
-// mock state para poder eliminar filas
+
+  // Data
   const [members, setMembers] = useState<MemberRow[]>([]);
+
+  // Delete modal
+  const deleteModal = useModal();
+  const [memberToDelete, setMemberToDelete] = useState<MemberRow | null>(null);
+
+  // Pagination
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
+
   useEffect(() => {
     let alive = true;
 
     async function loadMembers() {
-        try {
-          const [resMembers, resUsers] = await Promise.all([
-            fetch("/api/admin/members"),
-            fetch("/api/admin/users"),
-          ]);
+      try {
+        const res = await fetch("/api/admin/members");
+        const data = await res.json().catch(() => ({}));
 
-          const dataMembers = await resMembers.json().catch(() => ({}));
-          const dataUsers = await resUsers.json().catch(() => ({}));
-
-          if (!resMembers.ok) {
-            throw new Error((dataMembers as any)?.error || "Failed to load members");
-          }
-          if (!resUsers.ok) {
-            throw new Error((dataUsers as any)?.error || "Failed to load staff");
-          }
-
-          if (!alive) return;
-
-          const athletes = (dataMembers.members || []).map((m: any) => ({
-            id: m.id,
-            user: {
-              name: m.user?.name || "",
-              email: m.user?.email || "",
-            },
-            plan: m.plan || "—",
-expiresAt: m.expiresAt || "",
-            role: "athlete" as const,
-            status: m.status || "",
-          }));
-
-          const staff = (dataUsers.users || []).map((u: any) => ({
-            id: u.id,
-            user: {
-              name: u.fullName || "—",
-              email: u.email || "—",
-            },
-            plan: "—",
-expiresAt: "",
-            role: (u.role || "coach") as "admin" | "coach",
-            status: "—",
-          }));
-
-          setMembers([...athletes, ...staff]);
-        } catch (e) {
-          console.error("Failed to load members/staff", e);
+        if (!res.ok) {
+          throw new Error((data as any)?.error || "Failed to load members");
         }
-      }
+        if (!alive) return;
 
-      loadMembers();
+        const rows: MemberRow[] = (data.members || []).map((m: any) => ({
+          id: String(m.id || ""),
+          user: {
+            name: m.user?.name || "",
+            email: m.user?.email || "",
+          },
+          plan: m.plan || "—",
+          expiresAt: m.expiresAt || "",
+          role: (m.role || "athlete") as "admin" | "coach" | "athlete",
+          status: m.status || "",
+        }));
+
+        setMembers(rows);
+      } catch (e) {
+        console.error("Failed to load members", e);
+      }
+    }
+
+    loadMembers();
     return () => {
       alive = false;
     };
   }, []);
 
-
-  const deleteModal = useModal();
-  const [memberToDelete, setMemberToDelete] = useState<MemberRow | null>(null);
-
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [currentPage, setCurrentPage] = useState(1);
-
   const tableRowData = useMemo(() => {
+    // 1) Normalizar status (si viene vacío, lo calculamos por expiry)
     const withStatus = members.map((m) => ({
       ...m,
       status: (m as any).status ? (m as any).status : (m.expiresAt ? getStatus(m.expiresAt) : "—"),
     }));
 
-    const filtered = roleFilter === "all" ? withStatus : withStatus.filter((m) => m.role === roleFilter);
+    // 2) Role filter
+    const byRole =
+      roleFilter === "all" ? withStatus : withStatus.filter((m) => m.role === roleFilter);
 
-    filtered.sort((a, b) => a.user.name.localeCompare(b.user.name));
+    // 3) Search (name/email)
+    const q = (searchQuery || "").trim().toLowerCase();
+    const bySearch = !q
+      ? byRole
+      : byRole.filter((m) => {
+          const name = (m.user?.name || "").toLowerCase();
+          const email = (m.user?.email || "").toLowerCase();
+          return name.includes(q) || email.includes(q);
+        });
 
-    return filtered;
-  }, [members, roleFilter]);const totalPages = Math.max(1, Math.ceil(tableRowData.length / rowsPerPage));
+    // 4) Sort por nombre
+    return bySearch.sort((a, b) =>
+      (a.user?.name || "").localeCompare((b.user?.name || ""), undefined, { sensitivity: "base" })
+    );
+  }, [members, roleFilter, searchQuery]);
 
+  const totalPages = Math.max(1, Math.ceil(tableRowData.length / rowsPerPage));
   const currentData = tableRowData.slice(
     (currentPage - 1) * rowsPerPage,
     currentPage * rowsPerPage
@@ -151,14 +146,10 @@ expiresAt: "",
   const endIndex = Math.min(startIndex + rowsPerPage, totalEntries);
 
   const handlePageChange = (page: number) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
-    }
+    if (page >= 1 && page <= totalPages) setCurrentPage(page);
   };
 
-  const handleRowsPerPageChange = (
-    e: React.ChangeEvent<HTMLSelectElement>
-  ): void => {
+  const handleRowsPerPageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newRowsPerPage = parseInt(e.target.value, 10);
     setRowsPerPage(newRowsPerPage);
     setCurrentPage(1);
@@ -185,9 +176,8 @@ expiresAt: "",
 
       setMembers((prev) => prev.filter((m) => m.id !== deletingId));
 
-      // Ajuste de página si borrás el último item de la página actual
       setCurrentPage((prevPage) => {
-        const newCount = members.length - 1;
+        const newCount = tableRowData.length - 1;
         const newTotalPages = Math.max(1, Math.ceil(newCount / rowsPerPage));
         return Math.min(prevPage, newTotalPages);
       });
@@ -198,6 +188,8 @@ expiresAt: "",
       setMemberToDelete(null);
     }
   };
+
+
 
   return (
     <>

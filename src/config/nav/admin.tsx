@@ -18,7 +18,6 @@ export const adminNav: NavItem[] = [
   { name: "Planes & Pagos", icon: <TableIcon />, path: "/admin/payments" },
   { name: "Workouts (WOD)", icon: <TaskIcon />, path: "/admin/wod" },
   { name: "WOD (Feed)", icon: <TaskIcon />, path: "/admin/wod-feed" },
-  { name: "Staff", icon: <UserCircleIcon />, path: "/admin/staff" },
   { name: "Integraciones", icon: <PlugInIcon />, path: "/admin/integrations" },
   { name: "Configuración", icon: <PlugInIcon />, path: "/admin/settings" },
 ];

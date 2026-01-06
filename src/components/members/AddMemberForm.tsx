@@ -149,7 +149,7 @@ export default function AddMemberForm({
 
         let res: Response;
 
-        // Staff (admin/coach) -> /api/admin/users (invite)
+        // Staff (admin/coach) -> /api/admin/members (invite)
         if (role === "admin" || role === "coach") {
           const staffPayload = {
             fullName: payload.fullName,
@@ -158,7 +158,7 @@ export default function AddMemberForm({
             phone: payload.phone || "",
           };
 
-          res = await fetch("/api/admin/users", {
+          res = await fetch("/api/admin/members", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(staffPayload),
