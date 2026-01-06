@@ -180,12 +180,9 @@ export async function GET(req: Request) {
 
         const membership = Array.isArray(m.memberships) ? m.memberships[0] : m.memberships || null;
           const uid = m.user_id ? String(m.user_id) : "";
-          
-
-
           const role = (uid && rolesById[uid] ? String(rolesById[uid]).toLowerCase() : "athlete") as "admin" | "coach" | "athlete";
 
-                    const plan =
+          const plan =
             (membership?.plan || "").trim() ||
             ((role === "admin" || role === "coach") ? "Free" : "—");
 
@@ -231,6 +228,19 @@ export async function PATCH(req: Request) {
     if (role && !new Set(["admin", "coach", "athlete"]).has(role)) {
       return NextResponse.json({ error: "Invalid role" }, { status: 400 });
     }
+
+
+    const role = (String((body as any).role || "athlete").trim().toLowerCase() || "athlete") as
+      | "admin"
+      | "coach"
+      | "athlete";
+
+    const allowedRoles = new Set(["admin", "coach", "athlete"]);
+    if (!allowedRoles.has(role)) {
+      return NextResponse.json({ error: "Invalid role" }, { status: 400 });
+    }
+
+
     const id = String(body.id || "").trim();
     if (!id) return NextResponse.json({ error: "id is required" }, { status: 400 });
 
@@ -368,32 +378,24 @@ export async function POST(req: Request) {
 
     const body = await req.json().catch(() => ({}));
 
-    const fullName = String((body as any).fullName || "").trim();
-    const email = String((body as any).email || "").trim().toLowerCase();
-    const phone = String((body as any).phone || "").trim() || null;
-    const dob = String((body as any).dob || "").trim() || null;
-    const notes = String((body as any).notes || "").trim() || null;
+    const fullName = String(body.fullName || "").trim();
+    const email = String(body.email || "").trim().toLowerCase();
+    const phone = String(body.phone || "").trim() || null;
+    const dob = String(body.dob || "").trim() || null;
+    const notes = String(body.notes || "").trim() || null;
 
-    const roleRaw = String((body as any).role || "athlete").trim().toLowerCase();
-    const role = (roleRaw || "athlete") as "admin" | "coach" | "athlete";
-    const allowedRoles = new Set(["admin", "coach", "athlete"]);
-    if (!allowedRoles.has(role)) {
-      return NextResponse.json({ error: "Invalid role" }, { status: 400 });
-    }
-
-    // Membership fields (solo aplica a athlete/coach)
-    const plan = String((body as any).plan || "").trim() || null;
-    const monthlyFeeRaw = String((body as any).monthlyFee || "").trim();
+    const plan = String(body.plan || "").trim() || null;
+    const monthlyFeeRaw = String(body.monthlyFee || "").trim();
     const monthlyFee = monthlyFeeRaw ? Number(monthlyFeeRaw.replace(",", ".")) : null;
 
-    const startDate = String((body as any).startDate || "").trim() || null;
-    const expiresAt = String((body as any).expiresAt || "").trim() || null;
+    const startDate = String(body.startDate || "").trim() || null;
+    const expiresAt = String(body.expiresAt || "").trim() || null;
 
-    const creditsRaw = String((body as any).credits || "").trim();
+    const creditsRaw = String(body.credits || "").trim();
     const credits = creditsRaw ? Number(creditsRaw) : null;
 
-    const status = String((body as any).status || "").trim() || null;
-    const paymentMethod = String((body as any).paymentMethod || "").trim() || null;
+    const status = String(body.status || "").trim() || null;
+    const paymentMethod = String(body.paymentMethod || "").trim() || null;
 
     if (!fullName) return NextResponse.json({ error: "Full name is required" }, { status: 400 });
     if (!email || !email.includes("@")) return NextResponse.json({ error: "Invalid email" }, { status: 400 });
@@ -404,7 +406,7 @@ export async function POST(req: Request) {
     const redirectTo =
       `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/set-password`;
 
-    // 3) Invitar usuario por email (role en metadata)
+    // 3) Invitar usuario (athlete) por email
     const { data: invited, error: inviteErr } = await admin.auth.admin.inviteUserByEmail(email, {
       redirectTo,
       data: { fullName, role, phone },
@@ -416,7 +418,7 @@ export async function POST(req: Request) {
 
     const invitedUserId = (invited as any)?.user?.id ?? null;
 
-    // 4) Upsert profile si hay userId
+    // 4) Crear/actualizar profile (si tenemos userId)
     if (invitedUserId) {
       const { error: upsertErr } = await admin
         .from("profiles")
@@ -427,7 +429,7 @@ export async function POST(req: Request) {
       }
     }
 
-    // 5) Insert member
+    // 5) Guardar member + membership (linkeando al user_id si lo tenemos)
     const { data: member, error: memberErr } = await admin
       .from("members")
       .insert({
@@ -445,22 +447,22 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: memberErr?.message || "Failed to create member" }, { status: 400 });
     }
 
-    // 6) Insert membership solo si NO es admin
     if (role !== "admin") {
-      const { error: membershipErr } = await admin.from("memberships").insert({
-        member_id: (member as any).id,
-        plan,
-        monthly_fee: monthlyFee,
-        start_date: startDate || null,
-        expires_at: expiresAt || null,
-        credits,
-        status,
-        payment_method: paymentMethod,
-      });
+    const { error: membershipErr } = await admin.from("memberships").insert({
+      member_id: member.id,
+      plan,
+      monthly_fee: monthlyFee,
+      start_date: startDate || null,
+      expires_at: expiresAt || null,
+      credits,
+      status,
+      payment_method: paymentMethod,
+    });
 
-      if (membershipErr) {
-        return NextResponse.json({ error: membershipErr.message }, { status: 400 });
-      }
+    if (membershipErr) {
+      return NextResponse.json({ error: membershipErr.message }, { status: 400 });
+    }
+  }, { status: 400 });
     }
 
     return NextResponse.json({

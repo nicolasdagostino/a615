@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Label from "@/components/form/Label";
@@ -19,7 +18,9 @@ export type MemberFormDefaults = {
   plan?: string;
   monthlyFee?: string;
   expiresAt?: string; // YYYY-MM-DD
+
   credits?: string;
+
   status?: string;
   paymentMethod?: string;
   startDate?: string; // YYYY-MM-DD
@@ -83,11 +84,7 @@ export default function AddMemberForm({
   });
 
   const [loading, setLoading] = useState(false);
-  const [feedback, setFeedback] = useState<null | {
-    variant: "success" | "error";
-    title: string;
-    message: string;
-  }>(null);
+  const [feedback, setFeedback] = useState<null | { variant: "success" | "error"; title: string; message: string }>(null);
 
   useEffect(() => {
     setForm({
@@ -96,7 +93,6 @@ export default function AddMemberForm({
       phone: defaultValues?.phone ?? "",
       dob: defaultValues?.dob ?? "",
       notes: defaultValues?.notes ?? "",
-
       plan: defaultValues?.plan ?? "",
       monthlyFee: defaultValues?.monthlyFee ?? "",
       expiresAt: defaultValues?.expiresAt ?? "",
@@ -104,13 +100,9 @@ export default function AddMemberForm({
       status: defaultValues?.status ?? "",
       paymentMethod: defaultValues?.paymentMethod ?? "",
       startDate: defaultValues?.startDate ?? "",
-
       role: (defaultValues?.role as any) ?? "athlete",
     });
   }, [defaultValues]);
-
-  const selectedRole = (form.role || "athlete") as "admin" | "coach" | "athlete";
-  const isAthlete = selectedRole === "athlete";
 
   const canSubmit = useMemo(() => {
     return (
@@ -127,7 +119,7 @@ export default function AddMemberForm({
     router.refresh();
   };
 
-  const handleSubmit = async () => {
+      const handleSubmit = async () => {
     if (!canSubmit) return;
 
     setFeedback(null);
@@ -136,29 +128,27 @@ export default function AddMemberForm({
     try {
       const role = (form.role || "athlete") as "admin" | "coach" | "athlete";
 
-      // payload único: el backend decide qué hacer con membership según role
-      const payload: any = {
+      const payload = {
         fullName: form.fullName?.trim(),
         email: form.email?.trim().toLowerCase(),
         phone: form.phone?.trim() || "",
         dob: form.dob || "",
         notes: form.notes || "",
+
         role,
+
+        plan: form.plan || "",
+        monthlyFee: form.monthlyFee || "",
+        expiresAt: form.expiresAt || "",
+
+        credits: form.credits || "",
+        status: form.status || "",
+        paymentMethod: form.paymentMethod || "",
+        startDate: form.startDate || "",
       };
 
-      // Solo enviamos membership si es athlete (evita basura en admin/coach)
-      if (role === "athlete") {
-        payload.plan = form.plan || "";
-        payload.monthlyFee = form.monthlyFee || "";
-        payload.expiresAt = form.expiresAt || "";
-        payload.credits = form.credits || "";
-        payload.status = form.status || "";
-        payload.paymentMethod = form.paymentMethod || "";
-        payload.startDate = form.startDate || "";
-      }
-
       const method = memberId ? "PATCH" : "POST";
-      const finalPayload = memberId ? { id: memberId, ...payload } : payload;
+      const finalPayload: any = memberId ? { id: memberId, ...payload } : payload;
 
       const res = await fetch("/api/admin/members", {
         method,
@@ -183,7 +173,7 @@ export default function AddMemberForm({
         title: memberId ? "Member updated" : "Member created",
         message: memberId
           ? "Member updated successfully."
-          : `Member created: ${String(payload.email || "")}`,
+          : `Member created: ${payload.email}`,
       });
 
       setLoading(false);
@@ -200,13 +190,113 @@ export default function AddMemberForm({
     }
   };
 
+      const method = memberId ? "PATCH" : "POST";
+      const finalPayload: any = memberId ? { id: memberId, ...payload } : payload;
+
+      const res = await fetch("/api/admin/members", {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(finalPayload),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        setFeedback({
+          variant: "error",
+          title: "Could not save member",
+          message: String((data as any)?.error || "Could not save the member."),
+        });
+        setLoading(false);
+        return;
+      }
+
+      setFeedback({
+        variant: "success",
+        title: memberId ? "Member updated" : "Member created",
+        message: memberId
+          ? "Member updated successfully."
+          : `Member created: ${payload.email}`,
+      });
+
+      setLoading(false);
+      router.push("/admin/members");
+      router.refresh();
+    } catch (err) {
+      console.error(err);
+      setFeedback({
+        variant: "error",
+        title: "Unexpected error",
+        message: "Unexpected error while saving the member.",
+      });
+      setLoading(false);
+    }
+  };
+
+
+      const method = memberId ? "PATCH" : "POST";
+      const finalPayload: any = memberId ? { id: memberId, ...payload } : payload;
+
+      let res: Response;
+
+        const method = memberId ? "PATCH" : "POST";
+        const finalPayload: any = memberId ? { id: memberId, ...payload } : payload;
+
+        res = await fetch("/api/admin/members", {
+          method,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(finalPayload),
+        });
+
+);
+        } else {
+          res = await fetch("/api/admin/members", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+        }
+      }
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        setFeedback({
+          variant: "error",
+          title: "Could not save member",
+          message: String(data?.error || "Could not save the member."),
+        });
+        setLoading(false);
+        return;
+      }
+
+      setFeedback({
+        variant: "success",
+        title: memberId ? "Member updated" : "Invitation sent",
+        message: memberId
+          ? "Member updated successfully."
+          : `Invitation sent to: ${data?.member?.email}. The athlete must open the email and create their password.`,
+      });
+      setLoading(false);
+
+      router.push("/admin/members");
+      router.refresh();
+    } catch (err) {
+      console.error(err);
+      setFeedback({ variant: "error", title: "Unexpected error", message: "Unexpected error while saving the member." });
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {feedback ? (
-        <Alert variant={feedback.variant} title={feedback.title} message={feedback.message} />
+        <Alert
+          variant={feedback.variant}
+          title={feedback.title}
+          message={feedback.message}
+        />
       ) : null}
-
-      {/* Member Details */}
+      {/* Memberls */}
       <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
         <div className="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
           <h2 className="text-lg font-medium text-gray-800 dark:text-white">
@@ -233,12 +323,11 @@ export default function AddMemberForm({
                 <Select
                   options={roleOptions}
                   placeholder="Select role"
-                  onChange={(value) =>
-                    setForm((p) => ({ ...p, role: value as any }))
-                  }
+                  onChange={(value) => setForm((p) => ({ ...p, role: value as any }))}
                   defaultValue={form.role || "athlete"}
                 />
               </div>
+
 
               <div>
                 <Label>Email</Label>
@@ -288,125 +377,123 @@ export default function AddMemberForm({
         </div>
       </div>
 
-      {/* Membership & Billing (solo athlete) */}
-      {isAthlete ? (
-        <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
-          <div className="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
-            <h2 className="text-lg font-medium text-gray-800 dark:text-white">
-              Membership & Billing
-            </h2>
+      {/* Membership & Billing */}
+      <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+        <div className="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
+          <h2 className="text-lg font-medium text-gray-800 dark:text-white">
+            Membership & Billing
+          </h2>
+        </div>
+
+        <div className="space-y-5 p-4 sm:p-6">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+            <div>
+              <Label>Plan</Label>
+              <Select
+                options={plans}
+                placeholder="Select plan"
+                onChange={(value) => setForm((p) => ({ ...p, plan: value }))}
+                defaultValue={form.plan}
+              />
+            </div>
+
+            <div>
+              <Label>Monthly Fee</Label>
+              <Input
+                placeholder="€79"
+                value={form.monthlyFee}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setForm((p) => ({ ...p, monthlyFee: e.target.value }))
+                }
+              />
+            </div>
+
+            <div>
+              <Label>Expires At</Label>
+              <Input
+                type="date"
+                value={form.expiresAt}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setForm((p) => ({ ...p, expiresAt: e.target.value }))
+                }
+              />
+            </div>
           </div>
 
-          <div className="space-y-5 p-4 sm:p-6">
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-              <div>
-                <Label>Plan</Label>
-                <Select
-                  options={plans}
-                  placeholder="Select plan"
-                  onChange={(value) => setForm((p) => ({ ...p, plan: value }))}
-                  defaultValue={form.plan}
-                />
-              </div>
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            <div>
+              <label className="mb-1 inline-block text-sm font-semibold text-gray-700 dark:text-gray-400">
+                Credits / Sessions
+              </label>
+              <div className="flex h-11 divide-x divide-gray-300 overflow-hidden rounded-lg border border-gray-300 dark:divide-gray-800 dark:border-gray-700">
+                <button
+                  type="button"
+                  className="inline-flex h-11 w-11 items-center justify-center bg-white text-gray-700 hover:bg-gray-100 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="25" height="24" viewBox="0 0 25 24" fill="none">
+                    <path d="M6.66699 12H18.6677" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
 
-              <div>
-                <Label>Monthly Fee</Label>
-                <Input
-                  placeholder="€79"
-                  value={form.monthlyFee}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setForm((p) => ({ ...p, monthlyFee: e.target.value }))
-                  }
-                />
-              </div>
-
-              <div>
-                <Label>Expires At</Label>
-                <Input
-                  type="date"
-                  value={form.expiresAt}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setForm((p) => ({ ...p, expiresAt: e.target.value }))
-                  }
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-              <div>
-                <label className="mb-1 inline-block text-sm font-semibold text-gray-700 dark:text-gray-400">
-                  Credits / Sessions
-                </label>
-                <div className="flex h-11 divide-x divide-gray-300 overflow-hidden rounded-lg border border-gray-300 dark:divide-gray-800 dark:border-gray-700">
-                  <button
-                    type="button"
-                    className="inline-flex h-11 w-11 items-center justify-center bg-white text-gray-700 hover:bg-gray-100 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="25" height="24" viewBox="0 0 25 24" fill="none">
-                      <path d="M6.66699 12H18.6677" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </button>
-
-                  <div className="flex-1">
-                    <input
-                      type="text"
-                      value={form.credits}
-                      onChange={(e) =>
-                        setForm((p) => ({ ...p, credits: e.target.value }))
-                      }
-                      className="h-full w-full border-0 bg-white text-center text-sm text-gray-700 outline-none focus:ring-0 dark:bg-gray-900 dark:text-gray-400"
-                    />
-                  </div>
-
-                  <button
-                    type="button"
-                    className="inline-flex h-11 w-11 items-center justify-center bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="25" height="24" viewBox="0 0 25 24" fill="none">
-                      <path d="M6.66699 12.0002H18.6677M12.6672 6V18.0007" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </button>
+                <div className="flex-1">
+                  <input
+                    type="text"
+                    value={form.credits}
+                    onChange={(e) =>
+                      setForm((p) => ({ ...p, credits: e.target.value }))
+                    }
+                    className="h-full w-full border-0 bg-white text-center text-sm text-gray-700 outline-none focus:ring-0 dark:bg-gray-900 dark:text-gray-400"
+                  />
                 </div>
-              </div>
 
-              <div>
-                <Label>Status</Label>
-                <Select
-                  options={statusOptions}
-                  placeholder="Select status"
-                  onChange={(value) => setForm((p) => ({ ...p, status: value }))}
-                  defaultValue={form.status}
-                />
+                <button
+                  type="button"
+                  className="inline-flex h-11 w-11 items-center justify-center bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="25" height="24" viewBox="0 0 25 24" fill="none">
+                    <path d="M6.66699 12.0002H18.6677M12.6672 6V18.0007" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-              <div>
-                <Label>Payment Method</Label>
-                <Select
-                  options={paymentMethods}
-                  placeholder="Select method"
-                  onChange={(value) =>
-                    setForm((p) => ({ ...p, paymentMethod: value }))
-                  }
-                  defaultValue={form.paymentMethod}
-                />
-              </div>
+            <div>
+              <Label>Status</Label>
+              <Select
+                options={statusOptions}
+                placeholder="Select status"
+                onChange={(value) => setForm((p) => ({ ...p, status: value }))}
+                defaultValue={form.status}
+              />
+            </div>
+          </div>
 
-              <div>
-                <Label>Start Date</Label>
-                <Input
-                  type="date"
-                  value={form.startDate}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setForm((p) => ({ ...p, startDate: e.target.value }))
-                  }
-                />
-              </div>
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            <div>
+              <Label>Payment Method</Label>
+              <Select
+                options={paymentMethods}
+                placeholder="Select method"
+                onChange={(value) =>
+                  setForm((p) => ({ ...p, paymentMethod: value }))
+                }
+                defaultValue={form.paymentMethod}
+              />
+            </div>
+
+            <div>
+              <Label>Start Date</Label>
+              <Input
+                type="date"
+                value={form.startDate}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setForm((p) => ({ ...p, startDate: e.target.value }))
+                }
+              />
             </div>
           </div>
         </div>
-      ) : null}
+      </div>
 
       {/* Profile Photo */}
       <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
@@ -451,7 +538,11 @@ export default function AddMemberForm({
         <Button variant="outline" onClick={handleCancel}>
           Cancel
         </Button>
-        <Button variant="primary" onClick={handleSubmit} disabled={!canSubmit}>
+        <Button
+          variant="primary"
+          onClick={handleSubmit}
+          disabled={!canSubmit}
+        >
           {loading ? "Saving..." : primaryButtonLabel}
         </Button>
       </div>
