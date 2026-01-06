@@ -23,11 +23,11 @@ type MemberRow = {
     email: string;
   };
   plan: string;
-  fee: string;
   expiresAt: string; // "YYYY-MM-DD"
   role: "admin" | "coach" | "athlete";
-  status?: string; // status de membership (athlete) o "—" (staff)
+  status?: string; // solo para athletes (viene del API)
 };
+
 
 
 function toStartOfDay(date: Date) {
@@ -56,7 +56,9 @@ function getStatus(expiresAtISO: string): MemberStatus {
 export default function MembersTable() {
   const [isChecked, setIsChecked] = useState(false);
 
-  // mock state para poder eliminar filas
+  
+  const [roleFilter, setRoleFilter] = useState<"all" | "admin" | "coach" | "athlete">("all");
+// mock state para poder eliminar filas
   const [members, setMembers] = useState<MemberRow[]>([]);
   useEffect(() => {
     let alive = true;
@@ -87,8 +89,7 @@ export default function MembersTable() {
               email: m.user?.email || "",
             },
             plan: m.plan || "—",
-            fee: m.fee ? `€${m.fee}` : "—",
-            expiresAt: m.expiresAt || "",
+expiresAt: m.expiresAt || "",
             role: "athlete" as const,
             status: m.status || "",
           }));
@@ -100,8 +101,7 @@ export default function MembersTable() {
               email: u.email || "—",
             },
             plan: "—",
-            fee: "—",
-            expiresAt: "",
+expiresAt: "",
             role: (u.role || "coach") as "admin" | "coach",
             status: "—",
           }));
@@ -126,13 +126,17 @@ export default function MembersTable() {
   const [currentPage, setCurrentPage] = useState(1);
 
   const tableRowData = useMemo(() => {
-    return members.map((m) => ({
+    const withStatus = members.map((m) => ({
       ...m,
-      status: (m as any).status ? (m as any).status : getStatus(m.expiresAt),
+      status: (m as any).status ? (m as any).status : (m.expiresAt ? getStatus(m.expiresAt) : "—"),
     }));
-  }, [members]);
 
-  const totalPages = Math.max(1, Math.ceil(tableRowData.length / rowsPerPage));
+    const filtered = roleFilter === "all" ? withStatus : withStatus.filter((m) => m.role === roleFilter);
+
+    filtered.sort((a, b) => a.user.name.localeCompare(b.user.name));
+
+    return filtered;
+  }, [members, roleFilter]);const totalPages = Math.max(1, Math.ceil(tableRowData.length / rowsPerPage));
 
   const currentData = tableRowData.slice(
     (currentPage - 1) * rowsPerPage,
@@ -270,7 +274,20 @@ export default function MembersTable() {
                 placeholder="Search..."
                 className="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent py-2.5 pl-11 pr-4 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 xl:w-[300px]"
               />
-            </div>
+            
+              <div className="relative z-20 bg-transparent">
+                <select
+                  className="w-full py-2 pl-3 pr-8 text-sm text-gray-800 bg-transparent border border-gray-300 rounded-lg appearance-none dark:bg-dark-900 h-11 bg-none shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                  value={roleFilter}
+                  onChange={(e) => setRoleFilter(e.target.value as any)}
+                >
+                  <option value="all">All</option>
+                  <option value="athlete">Athlete</option>
+                  <option value="coach">Coach</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+</div>
 
             <Link
               href="/admin/members/new"
@@ -301,54 +318,6 @@ export default function MembersTable() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableCell
-                    isHeader
-                    className="px-4 py-3 border border-gray-100 dark:border-white/[0.05]"
-                  >
-                    <div className="flex items-center justify-between cursor-pointer">
-                      <div className="flex gap-3">
-                        <Checkbox checked={isChecked} onChange={setIsChecked} />
-                        <span className="font-medium text-gray-700 text-theme-xs dark:text-gray-400">
-                          Member
-                        </span>
-                      </div>
-                      <button className="flex flex-col gap-0.5">
-                        <AngleUpIcon className="text-gray-300 dark:text-gray-700" />
-                        <AngleDownIcon className="text-gray-300 dark:text-gray-700" />
-                      </button>
-                    </div>
-                  </TableCell>
-
-                  <TableCell
-                    isHeader
-                    className="px-4 py-3 border border-gray-100 dark:border-white/[0.05]"
-                  >
-                    <div className="flex items-center justify-between cursor-pointer">
-                      <p className="font-medium text-gray-700 text-theme-xs dark:text-gray-400">
-                        Plan
-                      </p>
-                      <button className="flex flex-col gap-0.5">
-                        <AngleUpIcon className="text-gray-300 dark:text-gray-700" />
-                        <AngleDownIcon className="text-gray-300 dark:text-gray-700" />
-                      </button>
-                    </div>
-                  </TableCell>
-
-                  <TableCell
-                    isHeader
-                    className="px-4 py-3 border border-gray-100 dark:border-white/[0.05]"
-                  >
-                    <div className="flex items-center justify-between cursor-pointer">
-                      <p className="font-medium text-gray-700 text-theme-xs dark:text-gray-400">
-                        Fee
-                      </p>
-                      <button className="flex flex-col gap-0.5">
-                        <AngleUpIcon className="text-gray-300 dark:text-gray-700" />
-                        <AngleDownIcon className="text-gray-300 dark:text-gray-700" />
-                      </button>
-                    </div>
-                  </TableCell>
-
                   <TableCell
                     isHeader
                     className="px-4 py-3 border border-gray-100 dark:border-white/[0.05]"
@@ -421,12 +390,7 @@ export default function MembersTable() {
                     <TableCell className="px-4 py-4 font-normal text-gray-800 border border-gray-100 dark:border-white/[0.05] text-theme-sm dark:text-gray-400 whitespace-nowrap">
                       <span>{item.plan}</span>
                     </TableCell>
-
-                    <TableCell className="px-4 py-4 font-normal text-gray-800 border border-gray-100 dark:border-white/[0.05] text-theme-sm dark:text-white/90 whitespace-nowrap">
-                      {item.fee}
-                    </TableCell>
-
-                    <TableCell className="px-4 py-4 font-normal text-gray-800 border border-gray-100 dark:border-white/[0.05] text-theme-sm dark:text-white/90 whitespace-nowrap">
+<TableCell className="px-4 py-4 font-normal text-gray-800 border border-gray-100 dark:border-white/[0.05] text-theme-sm dark:text-white/90 whitespace-nowrap">
                       {item.expiresAt}
                     </TableCell>
 
