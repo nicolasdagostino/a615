@@ -28,6 +28,32 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  // A615_FORCE_PASSWORD_CHANGE_V2
+  // ✅ Force password change on first login (admin-created accounts)
+  // Uses user_metadata.must_change_password
+  const { data: __a615_userData } = await supabase.auth.getUser();
+  const __a615_user = __a615_userData?.user;
+
+  const __a615_mustChange =
+    !!(__a615_user as any)?.user_metadata?.must_change_password;
+
+  const __a615_path = request.nextUrl.pathname;
+
+  const __a615_allow =
+    __a615_path.startsWith("/set-password") ||
+    __a615_path.startsWith("/signin") ||
+    __a615_path.startsWith("/signup") ||
+    __a615_path.startsWith("/reset-password") ||
+    __a615_path.startsWith("/two-step-verification") ||
+    __a615_path.startsWith("/api");
+
+  if (__a615_user && __a615_mustChange && !__a615_allow) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/set-password";
+    return NextResponse.redirect(url);
+  }
+
+
   // 2) No logueado => /signin
   if (!user) {
     const url = request.nextUrl.clone();

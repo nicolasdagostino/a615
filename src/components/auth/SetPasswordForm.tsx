@@ -88,7 +88,9 @@ export default function SetPasswordForm() {
 
     setLoading(true);
     try {
-      const { error } = await supabase.auth.updateUser({ password });
+      const { error } = await supabase.auth.updateUser({password,
+      data: { must_change_password: false },
+    });
       if (error) {
         setMessage(error.message);
         return;

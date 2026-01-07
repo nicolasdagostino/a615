@@ -83,6 +83,8 @@ export default function AddMemberForm({
   });
 
   const [loading, setLoading] = useState(false);
+  const [tempPassword, setTempPassword] = useState<string | null>(null);
+
   const [feedback, setFeedback] = useState<null | {
     variant: "success" | "error";
     title: string;
@@ -123,6 +125,7 @@ export default function AddMemberForm({
 
   const handleCancel = () => {
     setFeedback(null);
+      setTempPassword("");
     router.push("/admin/members");
     router.refresh();
   };
@@ -168,6 +171,8 @@ export default function AddMemberForm({
 
       const data = await res.json().catch(() => ({}));
 
+        const tp = String((data as any)?.tempPassword || "");
+
       if (!res.ok) {
         setFeedback({
           variant: "error",
@@ -178,6 +183,15 @@ export default function AddMemberForm({
         return;
       }
 
+        // ✅ If backend returned a temp password (create only), show it and stay on this page
+        if (!memberId && tp) {
+          setTempPassword(tp);
+          setFeedback(null);
+          setLoading(false);
+          return;
+        }
+
+
       setFeedback({
         variant: "success",
         title: memberId ? "Member updated" : "Member created",
@@ -185,11 +199,17 @@ export default function AddMemberForm({
           ? "Member updated successfully."
           : `Member created: ${String(payload.email || "")}`,
       });
+        setLoading(false);
 
-      setLoading(false);
-      router.push("/admin/members");
-      router.refresh();
-    } catch (err) {
+        // ✅ Si es creación y el backend devolvió tempPassword, nos quedamos en la pantalla
+        // para que el admin copie las credenciales.
+        if (!memberId && (data as any)?.tempPassword) {
+          return;
+        }
+
+        router.push("/admin/members");
+        router.refresh();
+} catch (err) {
       console.error(err);
       setFeedback({
         variant: "error",
@@ -202,9 +222,16 @@ export default function AddMemberForm({
 
   return (
     <div className="space-y-6">
-      {feedback ? (
-        <Alert variant={feedback.variant} title={feedback.title} message={feedback.message} />
-      ) : null}
+      {tempPassword ? (
+          <Alert
+            variant="success"
+            title="User credentials (save this password)"
+            message={`Email: ${form.email}
+Temporary password: ${tempPassword}`}
+          />
+        ) : feedback ? (
+          <Alert variant={feedback.variant} title={feedback.title} message={feedback.message} />
+        ) : null}
 
       {/* Member Details */}
       <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">

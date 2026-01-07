@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 
 import {
@@ -18,7 +18,7 @@ import { Modal } from "@/components/ui/modal";
 import { useModal } from "@/hooks/useModal";
 
 type ClassRow = {
-  id: number;
+  id: string;
   name: string;
   coach: string;
   day: string;      // "Mon", "Tue"...
@@ -28,22 +28,29 @@ type ClassRow = {
   type: "CrossFit" | "Open Box" | "Weightlifting" | "Gymnastics";
   status: "Scheduled" | "Full" | "Cancelled";
 };
-
-const classesMock: ClassRow[] = [
-  { id: 1, name: "CrossFit", coach: "Nico", day: "Mon", time: "18:00", durationMin: 60, capacity: 12, type: "CrossFit", status: "Scheduled" },
-  { id: 2, name: "Open Box", coach: "Nico", day: "Mon", time: "19:00", durationMin: 60, capacity: 10, type: "Open Box", status: "Full" },
-  { id: 3, name: "Weightlifting", coach: "Laura", day: "Tue", time: "18:00", durationMin: 75, capacity: 8, type: "Weightlifting", status: "Scheduled" },
-  { id: 4, name: "Gymnastics", coach: "Pablo", day: "Wed", time: "19:00", durationMin: 60, capacity: 10, type: "Gymnastics", status: "Cancelled" },
-  { id: 5, name: "CrossFit", coach: "Nico", day: "Thu", time: "07:00", durationMin: 60, capacity: 12, type: "CrossFit", status: "Scheduled" },
-  { id: 6, name: "CrossFit", coach: "Laura", day: "Fri", time: "18:00", durationMin: 60, capacity: 12, type: "CrossFit", status: "Full" },
-  { id: 7, name: "Open Box", coach: "Pablo", day: "Sat", time: "11:00", durationMin: 90, capacity: 14, type: "Open Box", status: "Scheduled" },
-];
-
 export default function ClassesTable() {
   const [isChecked, setIsChecked] = useState(false);
 
   // mock state por si después querés simular delete
-  const [rows, setRows] = useState<ClassRow[]>(classesMock);
+  const [rows, setRows] = useState<ClassRow[]>([]);
+
+  const fetchRows = async () => {
+    try {
+      const res = await fetch("/api/admin/classes", { method: "GET" });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json?.error || "Failed to load classes");
+      const items = Array.isArray(json?.classes) ? json.classes : [];
+      setRows(items);
+    } catch (e) {
+      setRows([]);
+    }
+  };
+
+  useEffect(() => {
+    fetchRows();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
 
   const deleteModal = useModal();
   const [rowToDelete, setRowToDelete] = useState<ClassRow | null>(null);
@@ -51,7 +58,16 @@ export default function ClassesTable() {
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const tableRowData = useMemo(() => rows, [rows]);
+  const [query, setQuery] = useState("");
+
+  const tableRowData = useMemo(() => {
+  const q = query.trim().toLowerCase();
+  if (!q) return rows;
+  return rows.filter((r) => {
+    const hay = `${r.name} ${r.coach} ${r.day} ${r.time} ${r.type} ${r.status}`.toLowerCase();
+    return hay.includes(q);
+  });
+}, [rows, query]);
 
   const totalPages = Math.max(1, Math.ceil(tableRowData.length / rowsPerPage));
   const currentData = tableRowData.slice(
@@ -78,18 +94,24 @@ export default function ClassesTable() {
     deleteModal.openModal();
   };
 
-  const confirmDelete = () => {
-    if (!rowToDelete) return;
-    const deletingId = rowToDelete.id;
+  const confirmDelete = async () => {
+      if (!rowToDelete) return;
+      const deletingId = rowToDelete.id;
 
-    setRows((prev) => prev.filter((x) => x.id !== deletingId));
-    setCurrentPage((prevPage) => {
-      const newCount = tableRowData.length - 1;
-      const newTotalPages = Math.max(1, Math.ceil(newCount / rowsPerPage));
-      return Math.min(prevPage, newTotalPages);
-    });
+      try {
+        const res = await fetch(`/api/admin/classes?id=${encodeURIComponent(deletingId)}`, { method: "DELETE" });
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(json?.error || "Failed to delete");
 
-    deleteModal.closeModal();
+        setRows((prev) => prev.filter((x) => x.id !== deletingId));
+        setCurrentPage((prevPage) => {
+          const newCount = tableRowData.length - 1;
+          const newTotalPages = Math.max(1, Math.ceil(newCount / rowsPerPage));
+          return Math.min(prevPage, newTotalPages);
+        });
+      } catch (e) {}
+
+      deleteModal.closeModal();
     setRowToDelete(null);
   };
 
@@ -129,6 +151,8 @@ export default function ClassesTable() {
               <input
                 type="text"
                 placeholder="Search..."
+                  value={query}
+                  onChange={(e) => { setQuery(e.target.value); setCurrentPage(1); }}
                 className="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent py-2.5 pl-11 pr-4 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 xl:w-[300px]"
               />
             </div>

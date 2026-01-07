@@ -1,3 +1,13 @@
+
+function generateTempPassword(length = 14) {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%";
+  let pwd = "";
+  for (let i = 0; i < length; i++) {
+    pwd += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return pwd;
+}
+
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -381,7 +391,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid role" }, { status: 400 });
     }
 
-    // Membership fields (solo aplica a athlete/coach)
+    // Membership fields (solo aplica a athlete)
     const plan = String((body as any).plan || "").trim() || null;
     const monthlyFeeRaw = String((body as any).monthlyFee || "").trim();
     const monthlyFee = monthlyFeeRaw ? Number(monthlyFeeRaw.replace(",", ".")) : null;
@@ -401,37 +411,34 @@ export async function POST(req: Request) {
     if (credits !== null && Number.isNaN(credits)) return NextResponse.json({ error: "Invalid credits" }, { status: 400 });
 
     const admin = createAdminClient();
-    const redirectTo =
-      `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/set-password`;
 
-    // 3) Invitar usuario por email (role en metadata)
-    const { data: invited, error: inviteErr } = await admin.auth.admin.inviteUserByEmail(email, {
-      redirectTo,
-      data: { fullName, role, phone },
+    // 3) Crear usuario con password temporal (SIN emails)
+    const tempPassword = generateTempPassword();
+
+    const { data: created, error: createErr } = await admin.auth.admin.createUser({
+      email,
+      password: tempPassword,
+      email_confirm: true,
+      user_metadata: { fullName, role, phone, must_change_password: true },
     });
 
-    if (inviteErr) {
-      return NextResponse.json({ error: inviteErr.message }, { status: 400 });
-    }
+    if (createErr) return NextResponse.json({ error: createErr.message }, { status: 400 });
 
-    const invitedUserId = (invited as any)?.user?.id ?? null;
+    const userId = (created as any)?.user?.id ?? null;
+    if (!userId) return NextResponse.json({ error: "Failed to create auth user" }, { status: 400 });
 
-    // 4) Upsert profile si hay userId
-    if (invitedUserId) {
-      const { error: upsertErr } = await admin
-        .from("profiles")
-        .upsert({ id: invitedUserId, email, role, full_name: fullName, phone }, { onConflict: "id" });
+    // 4) Upsert profile
+    const { error: upsertErr } = await admin
+      .from("profiles")
+      .upsert({ id: userId, email, role, full_name: fullName, phone }, { onConflict: "id" });
 
-      if (upsertErr) {
-        return NextResponse.json({ error: upsertErr.message }, { status: 400 });
-      }
-    }
+    if (upsertErr) return NextResponse.json({ error: upsertErr.message }, { status: 400 });
 
     // 5) Insert member
     const { data: member, error: memberErr } = await admin
       .from("members")
       .insert({
-        user_id: invitedUserId,
+        user_id: userId,
         full_name: fullName,
         email,
         phone,
@@ -445,8 +452,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: memberErr?.message || "Failed to create member" }, { status: 400 });
     }
 
-    // 6) Insert membership solo si NO es admin
-    if (role !== "admin") {
+    // 6) Insert membership solo si athlete
+    if (role === "athlete") {
       const { error: membershipErr } = await admin.from("memberships").insert({
         member_id: (member as any).id,
         plan,
@@ -463,12 +470,7 @@ export async function POST(req: Request) {
       }
     }
 
-    return NextResponse.json({
-      ok: true,
-      invited: true,
-      member,
-      redirectTo,
-    });
+    return NextResponse.json({ ok: true, member, tempPassword });
   } catch (e: any) {
     return NextResponse.json({ error: e?.message || "Server error" }, { status: 500 });
   }

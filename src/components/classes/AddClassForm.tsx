@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 
 import Label from "@/components/form/Label";
 import Input from "@/components/form/input/InputField";
@@ -8,6 +9,7 @@ import TextArea from "@/components/form/input/TextArea";
 import Button from "@/components/ui/button/Button";
 
 export type ClassFormDefaults = {
+    id?: string;
   name?: string;
   coach?: string;
   type?: string; // crossfit | open-box | weightlifting | gymnastics
@@ -26,6 +28,7 @@ type Props = {
 
 function normalizeDefaults(d?: ClassFormDefaults): Required<ClassFormDefaults> {
   return {
+      id: d?.id ?? "",
     name: d?.name ?? "",
     coach: d?.coach ?? "",
     type: d?.type ?? "",
@@ -75,6 +78,51 @@ export default function AddClassForm({
   const initial = useMemo(() => normalizeDefaults(defaultValues), [defaultValues]);
 
   const [form, setForm] = useState<Required<ClassFormDefaults>>(initial);
+
+
+    const router = useRouter();
+    const params = useParams<{ id?: string }>();
+
+    const classIdFromRoute = String((params as any)?.id || "").trim();
+    const isEdit = Boolean(classIdFromRoute);
+
+    const handleSave = async () => {
+      try {
+        const payload = {
+          id: classIdFromRoute || undefined,
+          name: String(form.name || "").trim(),
+          coach: String(form.coach || "").trim(),
+          type: String(form.type || "").trim(),
+          day: String(form.day || "").trim(),
+          time: String(form.time || "").trim(),
+          durationMin: String(form.durationMin || "").trim(),
+          capacity: String(form.capacity || "").trim(),
+          status: String(form.status || "").trim(),
+          notes: String(form.notes || "").trim(),
+        };
+
+        if (!payload.name || !payload.coach || !payload.type || !payload.day || !payload.time || !payload.status) {
+          return;
+        }
+
+        const res = await fetch("/api/admin/classes", {
+          method: isEdit ? "PATCH" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(json?.error || "Failed to save");
+
+        router.push("/admin/classes");
+        router.refresh();
+      } catch (e) {}
+    };
+
+    const handleCancel = () => {
+      router.back();
+    };
+
 
   // Si cambian defaults (raro, pero posible), sincronizamos.
   useEffect(() => {
@@ -216,8 +264,8 @@ export default function AddClassForm({
 
       {/* Actions */}
       <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-        <Button variant="outline">Cancel</Button>
-        <Button variant="primary">{primaryButtonLabel}</Button>
+        <Button variant="outline" onClick={handleCancel}>Cancel</Button>
+        <Button variant="primary" onClick={handleSave}>{primaryButtonLabel}</Button>
       </div>
     </div>
   );

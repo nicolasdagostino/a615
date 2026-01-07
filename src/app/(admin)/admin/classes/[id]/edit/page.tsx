@@ -1,66 +1,18 @@
 import ComponentCard from "@/components/common/ComponentCard";
 import AddClassForm from "@/components/classes/AddClassForm";
 import { Metadata } from "next";
+import { headers } from "next/headers";
 
 export const metadata: Metadata = {
   title: "Edit Class | TailAdmin - Next.js Dashboard Template",
-  description: "Edit class page (mock)",
+  description: "Edit class page",
 };
 
-type ClassRow = {
-  id: number;
-  name: string;
-  coach: string;     // Nico | Laura | Pablo (label en tabla)
-  day: string;       // Mon..Sun (label en tabla)
-  time: string;      // "18:00"
-  durationMin: number;
-  capacity: number;
-  type: string;      // CrossFit | Open Box | ...
-  status: string;    // Scheduled | Full | Cancelled
-  notes?: string;
-};
-
-const classesMock: ClassRow[] = [
-  { id: 1, name: "CrossFit", coach: "Nico", day: "Mon", time: "18:00", durationMin: 60, capacity: 12, type: "CrossFit", status: "Scheduled", notes: "WOD + skill" },
-  { id: 2, name: "Open Box", coach: "Nico", day: "Mon", time: "19:00", durationMin: 60, capacity: 10, type: "Open Box", status: "Full", notes: "Solo open gym" },
-  { id: 3, name: "Weightlifting", coach: "Laura", day: "Tue", time: "18:00", durationMin: 75, capacity: 8, type: "Weightlifting", status: "Scheduled" },
-];
-
-function mapCoach(label: string) {
-  const v = label.trim().toLowerCase();
-  if (v === "nico") return "nico";
-  if (v === "laura") return "laura";
-  if (v === "pablo") return "pablo";
-  return "";
-}
-
-function mapType(label: string) {
-  const v = label.trim().toLowerCase();
-  if (v.includes("crossfit")) return "crossfit";
-  if (v.includes("open")) return "open-box";
-  if (v.includes("weight")) return "weightlifting";
-  if (v.includes("gym")) return "gymnastics";
-  return "";
-}
-
-function mapStatus(label: string) {
-  const v = label.trim().toLowerCase();
-  if (v.includes("scheduled")) return "scheduled";
-  if (v.includes("full")) return "full";
-  if (v.includes("cancel")) return "cancelled";
-  return "";
-}
-
-function mapDay(label: string) {
-  const v = label.trim().toLowerCase();
-  if (v.startsWith("mon")) return "mon";
-  if (v.startsWith("tue")) return "tue";
-  if (v.startsWith("wed")) return "wed";
-  if (v.startsWith("thu")) return "thu";
-  if (v.startsWith("fri")) return "fri";
-  if (v.startsWith("sat")) return "sat";
-  if (v.startsWith("sun")) return "sun";
-  return "";
+async function getBaseUrl() {
+  const h = await headers();
+  const host = h.get("x-forwarded-host") || h.get("host") || "localhost:3000";
+  const proto = h.get("x-forwarded-proto") || "http";
+  return `${proto}://${host}`;
 }
 
 export default async function EditClassPage({
@@ -69,9 +21,17 @@ export default async function EditClassPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const classId = Number(id);
 
-  const cls = classesMock.find((c) => c.id === classId);
+  const baseUrl = await getBaseUrl();
+  const h = await headers();
+
+  const res = await fetch(`${baseUrl}/api/admin/classes?id=${encodeURIComponent(id)}`, {
+    cache: "no-store",
+    headers: { cookie: h.get("cookie") || "" },
+  });
+
+  const json = await res.json().catch(() => ({} as any));
+  const cls = (json as any)?.class || null;
 
   return (
     <div>
@@ -80,15 +40,16 @@ export default async function EditClassPage({
           <AddClassForm
             primaryButtonLabel="Update Class"
             defaultValues={{
-              name: cls?.name ?? "",
-              coach: cls?.coach ? mapCoach(cls.coach) : "",
-              type: cls?.type ? mapType(cls.type) : "",
-              status: cls?.status ? mapStatus(cls.status) : "",
-              day: cls?.day ? mapDay(cls.day) : "",
-              time: cls?.time ?? "",
-              durationMin: cls?.durationMin ? String(cls.durationMin) : "",
-              capacity: cls?.capacity ? String(cls.capacity) : "",
-              notes: cls?.notes ?? "",
+              id: String(cls?.id || id),
+              name: String(cls?.name || ""),
+              coach: String(cls?.coach || ""),
+              type: String(cls?.type || ""),
+              status: String(cls?.status || ""),
+              day: String(cls?.day || ""),
+              time: String(cls?.time || ""),
+              durationMin: String(cls?.durationMin || ""),
+              capacity: String(cls?.capacity || ""),
+              notes: String(cls?.notes || ""),
             }}
           />
         </ComponentCard>
