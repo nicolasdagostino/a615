@@ -257,7 +257,7 @@ Temporary password: ${tempPassword}`}
 
               <div>
                 <Label>Role</Label>
-                <Select
+                <Select key={`role-${form.role || "athlete"}`}
                   options={roleOptions}
                   placeholder="Select role"
                   onChange={(value) =>
