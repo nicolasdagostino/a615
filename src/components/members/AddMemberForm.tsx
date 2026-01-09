@@ -28,6 +28,7 @@ export type MemberFormDefaults = {
 };
 
 type Props = {
+    disableRole?: boolean;
   memberId?: string;
   defaultValues?: MemberFormDefaults;
   primaryButtonLabel?: string;
@@ -37,6 +38,7 @@ export default function AddMemberForm({
   memberId,
   defaultValues,
   primaryButtonLabel = "Save Member",
+  disableRole = false,
 }: Props) {
   const router = useRouter();
 
@@ -256,16 +258,25 @@ Temporary password: ${tempPassword}`}
               </div>
 
               <div>
-                <Label>Role</Label>
-                <Select key={`role-${form.role || "athlete"}`}
-                  options={roleOptions}
-                  placeholder="Select role"
-                  onChange={(value) =>
-                    setForm((p) => ({ ...p, role: value as any }))
-                  }
-                  defaultValue={form.role || "athlete"}
-                />
-              </div>
+                  <Label>Role</Label>
+                  {disableRole ? (
+                    <input
+                      value={(form.role || "admin").toString()}
+                      disabled
+                      className="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                    />
+                  ) : (
+                    <Select
+                      key={`${memberId || "new"}-${form.role || "athlete"}`}
+                      options={roleOptions}
+                      placeholder="Select role"
+                      onChange={(value) =>
+                        setForm((p) => ({ ...p, role: value as any }))
+                      }
+                      defaultValue={form.role || "athlete"}
+                    />
+                  )}
+                </div>
 
               <div>
                 <Label>Email</Label>

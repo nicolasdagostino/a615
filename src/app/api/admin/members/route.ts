@@ -134,7 +134,9 @@ export async function GET(req: Request) {
                 ? ""
                 : String(membership.credits),
             status: (membership?.status || "").trim(),
-            paymentMethod: (membership?.payment_method || "").trim(),
+            paymentMethod: (membership?.payment_method || "").trim(),              userId: uid,
+              isSelf: !!uid && uid === auth.userId,
+
               role,
             },
         });
@@ -207,11 +209,12 @@ export async function GET(req: Request) {
               : mapStatusToUi(membership?.status ?? null);
 
           return {
-            id: String(m.id),
-            user: {
-              name: (m.full_name || "—") as string,
-              email: (m.email || "—") as string,
-            },
+              id: String(m.id),
+              user: {
+                name: (m.full_name || "—") as string,
+                email: (m.email || "—") as string,
+                phone: (m.phone || "—") as string,
+              },
             plan,
             expiresAt,
             role,
@@ -295,7 +298,12 @@ export async function PATCH(req: Request) {
       if (mrowErr) return NextResponse.json({ error: mrowErr.message }, { status: 400 });
 
       const uid = String((mrow as any)?.user_id || "").trim();
-      if (uid) {
+      
+        // 🚫 Prevent admins from changing their OWN role (would break sidebar/permissions)
+        if (uid && uid === auth.userId) {
+          return NextResponse.json({ error: "You cannot change your own role." }, { status: 400 });
+        }
+if (uid) {
         const { error: profErr } = await admin.from("profiles").update({ role }).eq("id", uid);
         if (profErr) return NextResponse.json({ error: profErr.message }, { status: 400 });
       }
