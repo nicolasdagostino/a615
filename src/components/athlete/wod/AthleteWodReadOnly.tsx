@@ -1,21 +1,25 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Input from "@/components/form/input/InputField";
 import Select from "@/components/form/Select";
 import Button from "@/components/ui/button/Button";
 
-type Comment = {
+type ApiWod = {
   id: string;
-  author: string;
-  text: string;
-  createdAt: string;
+  wodDate: string; // YYYY-MM-DD
+  track: string;
+  title?: string | null;
+  workout: string;
+  coachNotes?: string | null;
+  isPublished?: boolean;
 };
 
-type Wod = {
-  date: string; // YYYY-MM-DD
-  content: string;
-  comments: Comment[];
+type ApiComment = {
+  id: string;
+  text: string;
+  createdAt: string;
+  authorName?: string | null;
 };
 
 function pad2(n: number) {
@@ -24,8 +28,8 @@ function pad2(n: number) {
 
 function monthLabel(m: number) {
   const labels = [
-    "Enero","Febrero","Marzo","Abril","Mayo","Junio",
-    "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre",
+    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
   ];
   return labels[m - 1] ?? String(m);
 }
@@ -40,36 +44,6 @@ function isSameMonth(iso: string, year: number, month: number) {
 }
 
 export default function AthleteWodReadOnly() {
-  const [wods, setWods] = useState<Wod[]>([
-    {
-      date: "2026-01-01",
-      content:
-        "For time:\n21-15-9\nThrusters (42.5/30)\nPull-ups\n\nCap: 12'\n\nScaling: Thrusters 30/20 + Ring rows",
-      comments: [
-        { id: "c1", author: "Nico", text: "Me mató el 21 😅", createdAt: "01/01/2026 19:12" },
-        { id: "c2", author: "Meli", text: "Hoy salieron mariposas jaja", createdAt: "01/01/2026 20:01" },
-      ],
-    },
-    {
-      date: "2026-01-02",
-      content:
-        "EMOM 20:\n1) 12/10 Cal Bike\n2) 12 KB Swings\n3) 10 Burpees\n4) Rest\n\nNotas: mantener ritmo sostenible",
-      comments: [{ id: "c3", author: "Fede", text: "Muy buen sweat 😮‍💨", createdAt: "02/01/2026 10:40" }],
-    },
-    {
-      date: "2026-01-03",
-      content:
-        "Strength:\nBack Squat 5x5 (build)\n\nMetcon:\nAMRAP 10\n10 Box Jumps\n10 Sit-ups\n200m Run",
-      comments: [],
-    },
-    {
-      date: "2025-12-29",
-      content:
-        "For quality:\n3 Rounds\n400m Run\n20 Lunges\n15 Push-ups\n\nCool down: 5-8' easy",
-      comments: [{ id: "c4", author: "Ana", text: "Buenísimo para arrancar la semana", createdAt: "29/12/2025 08:22" }],
-    },
-  ]);
-
   const now = new Date();
   const defaultYear = now.getFullYear();
   const defaultMonth = now.getMonth() + 1;
@@ -77,9 +51,66 @@ export default function AthleteWodReadOnly() {
   const [searchText, setSearchText] = useState("");
   const [month, setMonth] = useState<number>(defaultMonth);
   const [year, setYear] = useState<number>(defaultYear);
+
+  // Track selector (tu negocio: CrossFit / Functional / Weightlifting / Open Gym)
+  const trackOptions = useMemo(
+    () => [
+      { value: "crossfit", label: "CrossFit" },
+      { value: "functional", label: "Functional" },
+      { value: "weightlifting", label: "Weightlifting" },
+      { value: "open_gym", label: "Open Gym" },
+    ],
+    []
+  );
+  const [track, setTrack] = useState<string>("crossfit");
+
+  const [wods, setWods] = useState<ApiWod[]>([]);
+  const [selectedWodId, setSelectedWodId] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
+  const [commentsByWodId, setCommentsByWodId] = useState<Record<string, ApiComment[]>>({});
+  const [loadingComments, setLoadingComments] = useState(false);
+
   const [newComment, setNewComment] = useState("");
+  const [posting, setPosting] = useState(false);
+
+  // 1) Load WODs (published) from API
+  useEffect(() => {
+    let alive = true;
+
+    async function load() {
+      try {
+        // Traemos todos y filtramos en cliente por mes/año/busqueda
+        // (si querés optimizar luego, hacemos ?year&month&track)
+        const res = await fetch(`/api/wods?track=${encodeURIComponent(track)}`);
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok) throw new Error(String((data as any)?.error || "Failed to load wods"));
+        if (!alive) return;
+
+        const list: ApiWod[] = Array.isArray((data as any)?.wods) ? (data as any).wods : [];
+        setWods(
+          list.map((w) => ({
+            id: String((w as any).id),
+            wodDate: String((w as any).wodDate || (w as any).date || ""),
+            track: String((w as any).track || ""),
+            title: (w as any).title ?? null,
+            workout: String((w as any).workout || (w as any).content || ""),
+            coachNotes: (w as any).coachNotes ?? null,
+            isPublished: Boolean((w as any).isPublished ?? true),
+          }))
+        );
+      } catch (e) {
+        console.error("Failed to load wods", e);
+        setWods([]);
+      }
+    }
+
+    load();
+    return () => {
+      alive = false;
+    };
+  }, [track]);
 
   const monthOptions = useMemo(
     () => Array.from({ length: 12 }, (_, i) => ({ value: String(i + 1), label: monthLabel(i + 1) })),
@@ -91,49 +122,129 @@ export default function AthleteWodReadOnly() {
     return [y, y - 1, y - 2, y - 3, y - 4].map((yy) => ({ value: String(yy), label: String(yy) }));
   }, [defaultYear]);
 
+  // 2) List for month
   const listForMonth = useMemo(() => {
+    const q = searchText.trim().toLowerCase();
+
     return wods
-      .filter((w) => isSameMonth(w.date, year, month))
-      .filter((w) => !searchText.trim() || w.content.toLowerCase().includes(searchText.trim().toLowerCase()))
-      .sort((a, b) => (a.date < b.date ? 1 : -1))
-      .map((w) => ({
-        date: w.date,
-        preview: w.content.replace(/\n/g, " ").slice(0, 90) + (w.content.length > 90 ? "…" : ""),
-        commentCount: w.comments.length,
-      }));
-  }, [wods, year, month, searchText]);
+      .filter((w) => isSameMonth(w.wodDate, year, month))
+      .filter((w) => !q || (w.workout || "").toLowerCase().includes(q) || (w.title || "").toLowerCase().includes(q))
+      .sort((a, b) => (a.wodDate < b.wodDate ? 1 : -1))
+      .map((w) => {
+        const comments = commentsByWodId[w.id] || [];
+        return {
+          id: w.id,
+          date: w.wodDate,
+          preview: (w.workout || "").replace(/\n/g, " ").slice(0, 90) + ((w.workout || "").length > 90 ? "…" : ""),
+          commentCount: comments.length,
+        };
+      });
+  }, [wods, year, month, searchText, commentsByWodId]);
 
   const selectedWod = useMemo(() => {
-    const date = selectedDate ?? listForMonth[0]?.date ?? null;
-    if (!date) return null;
-    return wods.find((w) => w.date === date) ?? null;
-  }, [wods, selectedDate, listForMonth]);
+    const id = selectedWodId ?? (listForMonth[0]?.id ?? null);
+    if (!id) return null;
+    return wods.find((w) => w.id === id) ?? null;
+  }, [wods, selectedWodId, listForMonth]);
+
+  // 3) Auto-select first item when list changes
+  useEffect(() => {
+    const first = listForMonth[0];
+    if (!first) {
+      setSelectedWodId(null);
+      setSelectedDate(null);
+      return;
+    }
+    setSelectedWodId((prev) => (prev && listForMonth.some((x) => x.id === prev) ? prev : first.id));
+    setSelectedDate((prev) => (prev && listForMonth.some((x) => x.date === prev) ? prev : first.date));
+  }, [listForMonth]);
+
+  // 4) Load comments when selectedWod changes
+  useEffect(() => {
+    let alive = true;
+
+    async function loadComments(wodId: string) {
+      if (!wodId) return;
+      // cache: si ya tenemos, no volvemos a pedir
+      if (commentsByWodId[wodId]) return;
+
+      setLoadingComments(true);
+      try {
+        const res = await fetch(`/api/wods/comments?wodId=${encodeURIComponent(wodId)}`);
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok) throw new Error(String((data as any)?.error || "Failed to load comments"));
+        if (!alive) return;
+
+        const list = Array.isArray((data as any)?.comments) ? (data as any).comments : [];
+        const mapped: ApiComment[] = list.map((c: any) => ({
+          id: String(c.id || `${wodId}-${Math.random()}`),
+          text: String(c.text || c.message || ""),
+          createdAt: String(c.createdAt || c.created_at || new Date().toISOString()),
+          authorName: (c.authorName || c.author?.name || c.author || "—") as string,
+        }));
+
+        setCommentsByWodId((prev) => ({ ...prev, [wodId]: mapped }));
+      } catch (e) {
+        console.error("Failed to load comments", e);
+        setCommentsByWodId((prev) => ({ ...prev, [wodId]: [] }));
+      } finally {
+        if (alive) setLoadingComments(false);
+      }
+    }
+
+    if (selectedWod?.id) loadComments(selectedWod.id);
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedWod?.id]);
 
   const onSearchClick = () => {
-    const first = listForMonth[0]?.date ?? null;
-    if (!first) setSelectedDate(null);
-    else setSelectedDate((prev) => (prev && listForMonth.some((x) => x.date === prev) ? prev : first));
+    // no-op: ya filtra por useMemo
+    // pero mantenemos el botón para UX
   };
 
-  const addComment = () => {
-    if (!selectedWod) return;
+  const addComment = async () => {
+    if (!selectedWod?.id) return;
     const text = newComment.trim();
     if (!text) return;
 
-    const createdAt = new Date();
-    const created =
-      `${pad2(createdAt.getDate())}/${pad2(createdAt.getMonth() + 1)}/${createdAt.getFullYear()} ` +
-      `${pad2(createdAt.getHours())}:${pad2(createdAt.getMinutes())}`;
+    setPosting(true);
+    try {
+      const res = await fetch("/api/wods/comments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ wodId: selectedWod.id, body: text }),
+      });
 
-    setWods((prev) =>
-      prev.map((w) =>
-        w.date !== selectedWod.date
-          ? w
-          : { ...w, comments: [...w.comments, { id: `${w.date}-${Date.now()}`, author: "Tú", text, createdAt: created }] }
-      )
-    );
-    setNewComment("");
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(String((data as any)?.error || "Failed to post comment"));
+
+      // volvemos a pedir comments (o hacemos append optimista)
+      // hacemos append optimista acá para UX:
+      const createdAt = new Date().toISOString();
+      const newItem: ApiComment = {
+        id: String((data as any)?.id || `${selectedWod.id}-${Date.now()}`),
+        text,
+        createdAt,
+        authorName: "Tú",
+      };
+
+      setCommentsByWodId((prev) => ({
+        ...prev,
+        [selectedWod.id]: [...(prev[selectedWod.id] || []), newItem],
+      }));
+
+      setNewComment("");
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setPosting(false);
+    }
   };
+
+  const selectedComments = selectedWod?.id ? (commentsByWodId[selectedWod.id] || []) : [];
 
   return (
     <div className="space-y-5 sm:space-y-6">
@@ -148,6 +259,12 @@ export default function AthleteWodReadOnly() {
           </div>
 
           <div className="grid grid-cols-2 gap-3 sm:flex sm:items-center">
+            <Select
+              options={trackOptions}
+              placeholder="Track"
+              onChange={(v) => setTrack(String(v))}
+              defaultValue={track}
+            />
             <Select
               options={monthOptions}
               placeholder="Month"
@@ -185,7 +302,7 @@ export default function AthleteWodReadOnly() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
-                    WODs · {monthLabel(month)} {year}
+                    WODs · {monthLabel(month)} {year} · {trackOptions.find(t => t.value === track)?.label ?? track}
                   </h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
                     Seleccioná un WOD para ver detalle y comentarios.
@@ -200,17 +317,20 @@ export default function AthleteWodReadOnly() {
             <div className="p-3 sm:p-4">
               {listForMonth.length === 0 ? (
                 <div className="rounded-xl border border-dashed border-gray-200 p-6 text-center text-sm text-gray-500 dark:border-gray-800 dark:text-gray-400">
-                  No hay WODs para este mes (mock).
+                  No hay WODs publicados para este mes/track.
                 </div>
               ) : (
                 <div className="space-y-2">
                   {listForMonth.map((item) => {
-                    const active = (selectedDate ?? listForMonth[0]?.date) === item.date;
+                    const active = (selectedWodId ?? listForMonth[0]?.id) === item.id;
                     return (
                       <button
-                        key={item.date}
+                        key={item.id}
                         type="button"
-                        onClick={() => setSelectedDate(item.date)}
+                        onClick={() => {
+                          setSelectedWodId(item.id);
+                          setSelectedDate(item.date);
+                        }}
                         className={[
                           "w-full rounded-xl border px-4 py-3 text-left transition",
                           active
@@ -253,7 +373,7 @@ export default function AthleteWodReadOnly() {
           <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
             <div className="border-b border-gray-200 px-5 py-4 dark:border-gray-800">
               <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
-                {selectedWod ? `WOD · ${formatDateShort(selectedWod.date)}` : "WOD"}
+                {selectedWod && selectedDate ? `WOD · ${formatDateShort(selectedDate)}` : "WOD"}
               </h3>
             </div>
 
@@ -266,25 +386,38 @@ export default function AthleteWodReadOnly() {
                 <div className="space-y-6">
                   <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-900">
                     <pre className="whitespace-pre-wrap text-sm leading-6 text-gray-800 dark:text-white/90 font-medium">
-                      {selectedWod.content}
+                      {selectedWod.workout}
                     </pre>
+                    {selectedWod.coachNotes ? (
+                      <div className="mt-4 text-sm text-gray-600 dark:text-gray-300">
+                        <span className="font-semibold">Notas:</span> {selectedWod.coachNotes}
+                      </div>
+                    ) : null}
                   </div>
 
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <h4 className="text-base font-semibold text-gray-800 dark:text-white/90">Comentarios</h4>
-                      <span className="text-sm text-gray-500 dark:text-gray-400">{selectedWod.comments.length}</span>
+                      <span className="text-sm text-gray-500 dark:text-gray-400">
+                        {loadingComments ? "…" : selectedComments.length}
+                      </span>
                     </div>
 
                     <div className="space-y-3">
-                      {selectedWod.comments.length === 0 ? (
+                      {loadingComments ? (
+                        <div className="text-sm text-gray-500 dark:text-gray-400">Cargando comentarios…</div>
+                      ) : selectedComments.length === 0 ? (
                         <div className="text-sm text-gray-500 dark:text-gray-400">Todavía no hay comentarios.</div>
                       ) : (
-                        selectedWod.comments.map((c) => (
+                        selectedComments.map((c) => (
                           <div key={c.id} className="rounded-xl border border-gray-200 p-4 dark:border-gray-800">
                             <div className="flex items-center justify-between gap-3">
-                              <p className="text-sm font-semibold text-gray-800 dark:text-white/90">{c.author}</p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400">{c.createdAt}</p>
+                              <p className="text-sm font-semibold text-gray-800 dark:text-white/90">
+                                {c.authorName || "—"}
+                              </p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">
+                                {new Date(c.createdAt).toLocaleString()}
+                              </p>
                             </div>
                             <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">{c.text}</p>
                           </div>
@@ -298,14 +431,17 @@ export default function AthleteWodReadOnly() {
                         <div className="flex-1">
                           <Input
                             placeholder="Escribí tu comentario..."
-                            defaultValue={newComment}
+                            value={newComment}
                             onChange={(e) => setNewComment(e.target.value)}
                           />
+
                         </div>
-                        <Button variant="primary" onClick={addComment}>Publicar</Button>
+                        <Button variant="primary" onClick={addComment} disabled={posting}>
+                          {posting ? "Publicando..." : "Publicar"}
+                        </Button>
                       </div>
                       <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                        (Mock) Se agrega en memoria; al refrescar vuelve al seed.
+                        Se guarda en base de datos (persistente).
                       </p>
                     </div>
                   </div>
