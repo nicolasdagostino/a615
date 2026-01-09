@@ -36,3 +36,4 @@ pnpm-debug.log*
 # Env
 .env.local
 .env.*.local
+*.bak.*
