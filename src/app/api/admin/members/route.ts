@@ -287,27 +287,31 @@ export async function PATCH(req: Request) {
 
     
 
-    // 1.5) update role in profiles (si el member tiene user_id)
-    if (role) {
-      const { data: mrow, error: mrowErr } = await admin
-        .from("members")
-        .select("user_id")
-        .eq("id", id)
-        .single();
-
-      if (mrowErr) return NextResponse.json({ error: mrowErr.message }, { status: 400 });
-
-      const uid = String((mrow as any)?.user_id || "").trim();
+    
       
-        // 🚫 Prevent admins from changing their OWN role (would break sidebar/permissions)
+      // 1.5) update role in profiles (si el member tiene user_id)
+      if (role) {
+        const { data: mrow, error: mrowErr } = await admin
+          .from("members")
+          .select("user_id")
+          .eq("id", id)
+          .single();
+
+        if (mrowErr) return NextResponse.json({ error: mrowErr.message }, { status: 400 });
+
+        const uid = String((mrow as any)?.user_id || "").trim();
+
+        // ✅ Guard: el admin NO puede cambiar su propio rol
         if (uid && uid === auth.userId) {
           return NextResponse.json({ error: "You cannot change your own role." }, { status: 400 });
         }
-if (uid) {
-        const { error: profErr } = await admin.from("profiles").update({ role }).eq("id", uid);
-        if (profErr) return NextResponse.json({ error: profErr.message }, { status: 400 });
+
+        if (uid) {
+          const { error: profErr } = await admin.from("profiles").update({ role }).eq("id", uid);
+          if (profErr) return NextResponse.json({ error: profErr.message }, { status: 400 });
+        }
       }
-    }
+
 // 2) upsert membership
     const { error: msErr } = await admin.from("memberships").upsert(
       {

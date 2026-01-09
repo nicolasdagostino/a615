@@ -28,7 +28,8 @@ export type MemberFormDefaults = {
 };
 
 type Props = {
-    disableRole?: boolean;
+  // si querés forzar desde afuera (ej: bloquear rol en ciertos contextos)
+  disableRole?: boolean;
   memberId?: string;
   defaultValues?: MemberFormDefaults;
   primaryButtonLabel?: string;
@@ -38,7 +39,7 @@ export default function AddMemberForm({
   memberId,
   defaultValues,
   primaryButtonLabel = "Save Member",
-  disableRole = false,
+  disableRole: disableRoleProp = false,
 }: Props) {
   const router = useRouter();
 
@@ -114,6 +115,13 @@ export default function AddMemberForm({
   }, [defaultValues]);
 
   const selectedRole = (form.role || "athlete") as "admin" | "coach" | "athlete";
+
+  // Si estás editando a un admin (tu caso: tu user admin), lo tratamos como "no editable"
+  const isEditingAdminRole = !!memberId && selectedRole === "admin";
+
+  // 🔒 Disable role selector when editing admin, o si viene forzado desde afuera
+  const disableRole = !!disableRoleProp || !!isEditingAdminRole;
+
   const isAthlete = selectedRole === "athlete";
 
   const canSubmit = useMemo(() => {
@@ -127,7 +135,7 @@ export default function AddMemberForm({
 
   const handleCancel = () => {
     setFeedback(null);
-      setTempPassword("");
+    setTempPassword(null);
     router.push("/admin/members");
     router.refresh();
   };
@@ -139,9 +147,10 @@ export default function AddMemberForm({
     setLoading(true);
 
     try {
-      const role = (form.role || "athlete") as "admin" | "coach" | "athlete";
+      const role = (
+        isEditingAdminRole ? "admin" : (form.role || "athlete")
+      ) as "admin" | "coach" | "athlete";
 
-      // payload único: el backend decide qué hacer con membership según role
       const payload: any = {
         fullName: form.fullName?.trim(),
         email: form.email?.trim().toLowerCase(),
@@ -151,7 +160,6 @@ export default function AddMemberForm({
         role,
       };
 
-      // Solo enviamos membership si es athlete (evita basura en admin/coach)
       if (role === "athlete") {
         payload.plan = form.plan || "";
         payload.monthlyFee = form.monthlyFee || "";
@@ -172,8 +180,7 @@ export default function AddMemberForm({
       });
 
       const data = await res.json().catch(() => ({}));
-
-        const tp = String((data as any)?.tempPassword || "");
+      const tp = String((data as any)?.tempPassword || "");
 
       if (!res.ok) {
         setFeedback({
@@ -185,14 +192,13 @@ export default function AddMemberForm({
         return;
       }
 
-        // ✅ If backend returned a temp password (create only), show it and stay on this page
-        if (!memberId && tp) {
-          setTempPassword(tp);
-          setFeedback(null);
-          setLoading(false);
-          return;
-        }
-
+      // ✅ Create: si viene tempPassword, lo mostramos y nos quedamos en la pantalla
+      if (!memberId && tp) {
+        setTempPassword(tp);
+        setFeedback(null);
+        setLoading(false);
+        return;
+      }
 
       setFeedback({
         variant: "success",
@@ -201,17 +207,11 @@ export default function AddMemberForm({
           ? "Member updated successfully."
           : `Member created: ${String(payload.email || "")}`,
       });
-        setLoading(false);
 
-        // ✅ Si es creación y el backend devolvió tempPassword, nos quedamos en la pantalla
-        // para que el admin copie las credenciales.
-        if (!memberId && (data as any)?.tempPassword) {
-          return;
-        }
-
-        router.push("/admin/members");
-        router.refresh();
-} catch (err) {
+      setLoading(false);
+      router.push("/admin/members");
+      router.refresh();
+    } catch (err) {
       console.error(err);
       setFeedback({
         variant: "error",
@@ -225,15 +225,15 @@ export default function AddMemberForm({
   return (
     <div className="space-y-6">
       {tempPassword ? (
-          <Alert
-            variant="success"
-            title="User credentials (save this password)"
-            message={`Email: ${form.email}
+        <Alert
+          variant="success"
+          title="User credentials (save this password)"
+          message={`Email: ${form.email}
 Temporary password: ${tempPassword}`}
-          />
-        ) : feedback ? (
-          <Alert variant={feedback.variant} title={feedback.title} message={feedback.message} />
-        ) : null}
+        />
+      ) : feedback ? (
+        <Alert variant={feedback.variant} title={feedback.title} message={feedback.message} />
+      ) : null}
 
       {/* Member Details */}
       <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
@@ -258,25 +258,23 @@ Temporary password: ${tempPassword}`}
               </div>
 
               <div>
-                  <Label>Role</Label>
-                  {disableRole ? (
-                    <input
-                      value={(form.role || "admin").toString()}
-                      disabled
-                      className="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
-                    />
-                  ) : (
-                    <Select
-                      key={`${memberId || "new"}-${form.role || "athlete"}`}
-                      options={roleOptions}
-                      placeholder="Select role"
-                      onChange={(value) =>
-                        setForm((p) => ({ ...p, role: value as any }))
-                      }
-                      defaultValue={form.role || "athlete"}
-                    />
-                  )}
-                </div>
+                <Label>Role</Label>
+                {disableRole ? (
+                  <input
+                    value={(form.role || "admin").toString()}
+                    disabled
+                    className="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                  />
+                ) : (
+                  <Select
+                    key={`${memberId || "new"}-${form.role || "athlete"}`}
+                    options={roleOptions}
+                    placeholder="Select role"
+                    onChange={(value) => setForm((p) => ({ ...p, role: value as any }))}
+                    defaultValue={form.role || "athlete"}
+                  />
+                )}
+              </div>
 
               <div>
                 <Label>Email</Label>
@@ -389,9 +387,7 @@ Temporary password: ${tempPassword}`}
                     <input
                       type="text"
                       value={form.credits}
-                      onChange={(e) =>
-                        setForm((p) => ({ ...p, credits: e.target.value }))
-                      }
+                      onChange={(e) => setForm((p) => ({ ...p, credits: e.target.value }))}
                       className="h-full w-full border-0 bg-white text-center text-sm text-gray-700 outline-none focus:ring-0 dark:bg-gray-900 dark:text-gray-400"
                     />
                   </div>
@@ -424,9 +420,7 @@ Temporary password: ${tempPassword}`}
                 <Select
                   options={paymentMethods}
                   placeholder="Select method"
-                  onChange={(value) =>
-                    setForm((p) => ({ ...p, paymentMethod: value }))
-                  }
+                  onChange={(value) => setForm((p) => ({ ...p, paymentMethod: value }))}
                   defaultValue={form.paymentMethod}
                 />
               </div>
