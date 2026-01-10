@@ -179,7 +179,7 @@ export default function AthleteWodReadOnly() {
         const list = Array.isArray((data as any)?.comments) ? (data as any).comments : [];
         const mapped: ApiComment[] = list.map((c: any) => ({
           id: String(c.id || `${wodId}-${Math.random()}`),
-          text: String(c.text || c.message || ""),
+          text: String(c.text || c.body || c.message || ""),
           createdAt: String(c.createdAt || c.created_at || new Date().toISOString()),
           authorName: (c.authorName || c.author?.name || c.author || "—") as string,
         }));

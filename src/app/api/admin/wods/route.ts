@@ -21,16 +21,38 @@ async function assertAdmin() {
 
 function normalizeTrack(track: string) {
   const t = String(track || "").trim().toLowerCase();
-  const allowed = new Set(["crossfit", "functional", "weightlifting", "open_gym"]);
+  // agregá acá lo que uses en tu gym
+  const allowed = new Set(["crossfit", "functional", "weightlifting", "open_gym", "jiujitsu", "kids"]);
   if (!allowed.has(t)) return null;
   return t;
 }
 
 function normalizeDate(d: string) {
   const v = String(d || "").trim();
-  // esperamos YYYY-MM-DD
   if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) return null;
   return v;
+}
+
+function normalizeType(v: any) {
+  const t = String(v ?? "").trim().toLowerCase();
+  const allowed = new Set(["", "metcon", "strength", "skill", "hero", "benchmark"]);
+  if (!allowed.has(t)) return "";
+  return t;
+}
+
+function toUi(row: any) {
+  return {
+    id: String(row.id),
+    wodDate: String(row.wod_date || ""),
+    track: String(row.track || ""),
+    title: row.title ?? "",
+    type: String(row.type ?? ""),
+    workout: String(row.workout || ""),
+    coachNotes: row.coach_notes ?? "",
+    isPublished: !!row.is_published,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
 }
 
 export async function GET(req: Request) {
@@ -42,27 +64,26 @@ export async function GET(req: Request) {
     const url = new URL(req.url);
 
     const id = String(url.searchParams.get("id") || "").trim();
-    const date = String(url.searchParams.get("date") || "").trim(); // YYYY-MM-DD
+    const date = String(url.searchParams.get("date") || "").trim();
     const month = String(url.searchParams.get("month") || "").trim(); // YYYY-MM
     const track = String(url.searchParams.get("track") || "").trim();
 
     if (id) {
       const { data, error } = await admin
         .from("wods")
-        .select("id, wod_date, track, title, workout, coach_notes, is_published, created_at, updated_at")
+        .select("id, wod_date, track, title, type, workout, coach_notes, is_published, created_at, updated_at")
         .eq("id", id)
         .single();
 
       if (error) return NextResponse.json({ error: error.message }, { status: 400 });
       if (!data) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-      return NextResponse.json({ ok: true, wod: data });
+      return NextResponse.json({ ok: true, wod: toUi(data) });
     }
 
-    // filtros (opcionales)
     let query = admin
       .from("wods")
-      .select("id, wod_date, track, title, workout, coach_notes, is_published, created_at, updated_at")
+      .select("id, wod_date, track, title, type, workout, coach_notes, is_published, created_at, updated_at")
       .order("wod_date", { ascending: false })
       .order("track", { ascending: true });
 
@@ -71,12 +92,10 @@ export async function GET(req: Request) {
       if (!nd) return NextResponse.json({ error: "Invalid date (expected YYYY-MM-DD)" }, { status: 400 });
       query = query.eq("wod_date", nd);
     } else if (month) {
-      // rango por mes
       if (!/^\d{4}-\d{2}$/.test(month)) {
         return NextResponse.json({ error: "Invalid month (expected YYYY-MM)" }, { status: 400 });
       }
       const start = `${month}-01`;
-      // calculo simple de fin de mes: pedimos < nextMonth-01
       const [y, m] = month.split("-").map((x) => Number(x));
       const nextMonth = m === 12 ? `${y + 1}-01` : `${y}-${String(m + 1).padStart(2, "0")}`;
       const endExclusive = `${nextMonth}-01`;
@@ -92,7 +111,7 @@ export async function GET(req: Request) {
     const { data, error } = await query;
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
-    return NextResponse.json({ ok: true, wods: data || [] });
+    return NextResponse.json({ ok: true, wods: (data || []).map(toUi) });
   } catch (e: any) {
     return NextResponse.json({ error: e?.message || "Server error" }, { status: 500 });
   }
@@ -111,9 +130,10 @@ export async function POST(req: Request) {
     const workout = String(body.workout || "").trim();
     const coachNotes = String(body.coachNotes || body.coach_notes || "").trim() || null;
     const isPublished = !!body.isPublished || !!body.is_published;
+    const type = normalizeType(body.type);
 
     if (!wodDate) return NextResponse.json({ error: "wodDate is required (YYYY-MM-DD)" }, { status: 400 });
-    if (!track) return NextResponse.json({ error: "track is required (crossfit|functional|weightlifting|open_gym)" }, { status: 400 });
+    if (!track) return NextResponse.json({ error: "track is required" }, { status: 400 });
     if (!workout) return NextResponse.json({ error: "workout is required" }, { status: 400 });
 
     const admin = createAdminClient();
@@ -124,6 +144,7 @@ export async function POST(req: Request) {
         wod_date: wodDate,
         track,
         title,
+        type,
         workout,
         coach_notes: coachNotes,
         is_published: isPublished,
@@ -133,7 +154,6 @@ export async function POST(req: Request) {
       .single();
 
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-
     return NextResponse.json({ ok: true, id: String((data as any)?.id || "") });
   } catch (e: any) {
     return NextResponse.json({ error: e?.message || "Server error" }, { status: 500 });
@@ -149,32 +169,37 @@ export async function PATCH(req: Request) {
     const id = String(body.id || "").trim();
     if (!id) return NextResponse.json({ error: "id is required" }, { status: 400 });
 
-    const wodDateRaw = body.wodDate ?? body.wod_date;
-    const trackRaw = body.track;
-    const titleRaw = body.title;
-    const workoutRaw = body.workout;
-    const coachNotesRaw = body.coachNotes ?? body.coach_notes;
-    const isPublishedRaw = body.isPublished ?? body.is_published;
-
     const patch: any = {};
-    if (wodDateRaw !== undefined) {
-      const nd = normalizeDate(wodDateRaw);
+
+    if (body.wodDate !== undefined || body.wod_date !== undefined) {
+      const nd = normalizeDate(body.wodDate ?? body.wod_date);
       if (!nd) return NextResponse.json({ error: "Invalid wodDate (YYYY-MM-DD)" }, { status: 400 });
       patch.wod_date = nd;
     }
-    if (trackRaw !== undefined) {
-      const nt = normalizeTrack(trackRaw);
+
+    if (body.track !== undefined) {
+      const nt = normalizeTrack(body.track);
       if (!nt) return NextResponse.json({ error: "Invalid track" }, { status: 400 });
       patch.track = nt;
     }
-    if (titleRaw !== undefined) patch.title = String(titleRaw || "").trim() || null;
-    if (workoutRaw !== undefined) {
-      const w = String(workoutRaw || "").trim();
+
+    if (body.title !== undefined) patch.title = String(body.title || "").trim() || null;
+
+    if (body.type !== undefined) patch.type = normalizeType(body.type);
+
+    if (body.workout !== undefined) {
+      const w = String(body.workout || "").trim();
       if (!w) return NextResponse.json({ error: "workout cannot be empty" }, { status: 400 });
       patch.workout = w;
     }
-    if (coachNotesRaw !== undefined) patch.coach_notes = String(coachNotesRaw || "").trim() || null;
-    if (isPublishedRaw !== undefined) patch.is_published = !!isPublishedRaw;
+
+    if (body.coachNotes !== undefined || body.coach_notes !== undefined) {
+      patch.coach_notes = String(body.coachNotes ?? body.coach_notes ?? "").trim() || null;
+    }
+
+    if (body.isPublished !== undefined || body.is_published !== undefined) {
+      patch.is_published = !!(body.isPublished ?? body.is_published);
+    }
 
     const admin = createAdminClient();
     const { error } = await admin.from("wods").update(patch).eq("id", id);
