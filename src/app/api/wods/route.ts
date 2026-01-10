@@ -43,7 +43,7 @@ export async function GET(req: Request) {
     // Base query: solo publicados (tu requerimiento clave de feed)
     let q = supabase
       .from("wods")
-      .select("id, wod_date, track, title, workout, coach_notes, is_published")
+      .select("id, wod_date, track, title, workout, coach_notes, is_published, type")
       .eq("is_published", true);
 
     if (track) q = q.eq("track", track);

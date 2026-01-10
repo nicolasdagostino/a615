@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Label from "@/components/form/Label";
 import Input from "@/components/form/input/InputField";
@@ -75,6 +75,16 @@ export default function AddWodForm({
     coachNotes: "",
     ...initialValues,
   });
+
+  // Sync: si initialValues cambia (edit), actualizamos el form
+  useEffect(() => {
+    if (!initialValues) return;
+    setForm((p) => ({
+      ...p,
+      ...initialValues,
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(initialValues)]);
 
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState<null | {
@@ -184,7 +194,7 @@ export default function AddWodForm({
 
             <div>
               <Label>Tipo</Label>
-              <Select
+              <Select key={`type-${form.type}`}
                 options={typeOptions}
                 placeholder="Select type"
                 onChange={(v) => setForm((p) => ({ ...p, type: (String(v) as WodTipo) || "" }))}
@@ -194,7 +204,7 @@ export default function AddWodForm({
 
             <div>
               <Label>Estado</Label>
-              <Select
+              <Select key={`status-${form.status}`}
                 options={statusOptions}
                 placeholder="Select status"
                 onChange={(v) => setForm((p) => ({ ...p, status: (String(v) as WodEstado) || "draft" }))}

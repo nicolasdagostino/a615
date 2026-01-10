@@ -129,12 +129,16 @@ export async function POST(req: Request) {
     const title = String(body.title || "").trim() || null;
     const workout = String(body.workout || "").trim();
     const coachNotes = String(body.coachNotes || body.coach_notes || "").trim() || null;
+    const typeRaw = String(body.type || "").trim().toLowerCase();
     const isPublished = !!body.isPublished || !!body.is_published;
     const type = normalizeType(body.type);
 
     if (!wodDate) return NextResponse.json({ error: "wodDate is required (YYYY-MM-DD)" }, { status: 400 });
     if (!track) return NextResponse.json({ error: "track is required" }, { status: 400 });
     if (!workout) return NextResponse.json({ error: "workout is required" }, { status: 400 });
+
+    const allowedTypes = new Set(["", "metcon", "strength", "skill", "hero", "benchmark"]);
+    if (!allowedTypes.has(typeRaw)) return NextResponse.json({ error: "Invalid type" }, { status: 400 });
 
     const admin = createAdminClient();
 
@@ -144,7 +148,7 @@ export async function POST(req: Request) {
         wod_date: wodDate,
         track,
         title,
-        type,
+        type: typeRaw || null,
         workout,
         coach_notes: coachNotes,
         is_published: isPublished,

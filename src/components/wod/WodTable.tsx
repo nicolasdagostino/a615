@@ -52,10 +52,10 @@ export default function WodTable() {
         const list = Array.isArray((data as any)?.wods) ? (data as any).wods : [];
         const mapped: Row[] = list.map((w: any) => ({
           id: String(w.id),
-          wodDate: String(w.wodDate || w.date || ""),
+          wodDate: String(w.wod_date || w.wodDate || w.date || ""),
           track: String(w.track || ""),
           title: String(w.title || "—"),
-          isPublished: Boolean(w.isPublished),
+          isPublished: Boolean(w.is_published ?? w.isPublished),
         }));
 
         // orden: fecha desc
