@@ -47,7 +47,6 @@ export default function AthleteWodReadOnly() {
   const now = new Date();
   const defaultYear = now.getFullYear();
   const defaultMonth = now.getMonth() + 1;
-
   const [searchText, setSearchText] = useState("");
   const [month, setMonth] = useState<number>(defaultMonth);
   const [year, setYear] = useState<number>(defaultYear);
@@ -56,13 +55,54 @@ export default function AthleteWodReadOnly() {
   const trackOptions = useMemo(
     () => [
       { value: "crossfit", label: "CrossFit" },
-      { value: "functional", label: "Functional" },
-      { value: "weightlifting", label: "Weightlifting" },
-      { value: "open_gym", label: "Open Gym" },
+        { value: "open-box", label: "Open Box" },
+        { value: "weightlifting", label: "Weightlifting" },
+        { value: "gymnastics", label: "Gymnastics" },
+        { value: "kids", label: "Kids" },
+        // legacy (si aún los usas)
+        { value: "functional", label: "Functional" },
+        { value: "open_gym", label: "Open Gym" },
     ],
     []
   );
   const [track, setTrack] = useState<string>("crossfit");
+
+    // Sync state from URL query params (no next/navigation hooks)
+    useEffect(() => {
+      if (typeof window === "undefined") return;
+
+      const applyFromUrl = () => {
+        const sp = new URLSearchParams(window.location.search);
+        const t = (sp.get("track") || "").trim().toLowerCase();
+        const yRaw = (sp.get("year") || "").trim();
+        const mRaw = (sp.get("month") || "").trim();
+        const d = (sp.get("date") || "").trim();
+        const q = (sp.get("q") || "").trim();
+        if (q !== undefined) setSearchText(q);
+
+
+        if (t) setTrack(t);
+
+        // date=YYYY-MM-DD has priority and sets month/year
+        if (/^\d{4}-\d{2}-\d{2}$/.test(d)) {
+          const yy = Number(d.slice(0, 4));
+          const mm = Number(d.slice(5, 7));
+          if (!Number.isNaN(yy)) setYear(yy);
+          if (!Number.isNaN(mm) && mm >= 1 && mm <= 12) setMonth(mm);
+          setSelectedDate(d);
+          return;
+        }
+
+        const yy = yRaw ? Number(yRaw) : null;
+        const mm = mRaw ? Number(mRaw) : null;
+        if (yy && !Number.isNaN(yy)) setYear(yy);
+        if (mm && !Number.isNaN(mm) && mm >= 1 && mm <= 12) setMonth(mm);
+      };
+
+      applyFromUrl();
+      window.addEventListener("popstate", applyFromUrl);
+      return () => window.removeEventListener("popstate", applyFromUrl);
+    }, []);
 
   const [wods, setWods] = useState<ApiWod[]>([]);
   const [selectedWodId, setSelectedWodId] = useState<string | null>(null);
@@ -82,7 +122,7 @@ export default function AthleteWodReadOnly() {
       try {
         // Traemos todos y filtramos en cliente por mes/año/busqueda
         // (si querés optimizar luego, hacemos ?year&month&track)
-        const res = await fetch(`/api/wods?track=${encodeURIComponent(track)}`);
+        const res = await fetch(`/api/wods?track=${encodeURIComponent(track)}&year=${encodeURIComponent(String(year))}&month=${encodeURIComponent(String(month))}`);
         const data = await res.json().catch(() => ({}));
 
         if (!res.ok) throw new Error(String((data as any)?.error || "Failed to load wods"));
@@ -110,9 +150,8 @@ export default function AthleteWodReadOnly() {
     return () => {
       alive = false;
     };
-  }, [track]);
-
-  const monthOptions = useMemo(
+  }, [track, year, month]);
+const monthOptions = useMemo(
     () => Array.from({ length: 12 }, (_, i) => ({ value: String(i + 1), label: monthLabel(i + 1) })),
     []
   );
@@ -141,23 +180,44 @@ export default function AthleteWodReadOnly() {
       });
   }, [wods, year, month, searchText, commentsByWodId]);
 
-  const selectedWod = useMemo(() => {
+  
+
+
+
+const selectedWod = useMemo(() => {
     const id = selectedWodId ?? (listForMonth[0]?.id ?? null);
     if (!id) return null;
     return wods.find((w) => w.id === id) ?? null;
   }, [wods, selectedWodId, listForMonth]);
 
-  // 3) Auto-select first item when list changes
-  useEffect(() => {
-    const first = listForMonth[0];
-    if (!first) {
-      setSelectedWodId(null);
-      setSelectedDate(null);
+ // 3) Auto-select first item when list changes
+useEffect(() => {
+  const first = listForMonth[0];
+
+  // Si todavía no hay items, NO borres selectedDate (puede venir de la URL)
+  if (!first) {
+    setSelectedWodId(null);
+    return;
+  }
+
+  // Si hay selectedDate (por URL o por click), tratamos de respetarlo
+  if (selectedDate) {
+    const hit = listForMonth.find((x) => x.date === selectedDate);
+    if (hit) {
+      setSelectedWodId(hit.id);
       return;
     }
-    setSelectedWodId((prev) => (prev && listForMonth.some((x) => x.id === prev) ? prev : first.id));
-    setSelectedDate((prev) => (prev && listForMonth.some((x) => x.date === prev) ? prev : first.date));
-  }, [listForMonth]);
+  }
+
+  // Fallback: elegimos el primero del mes
+  setSelectedWodId((prev) =>
+    prev && listForMonth.some((x) => x.id === prev) ? prev : first.id
+  );
+  setSelectedDate((prev) =>
+    prev && listForMonth.some((x) => x.date === prev) ? prev : first.date
+  );
+}, [listForMonth, selectedDate]);
+
 
   // 4) Load comments when selectedWod changes
   useEffect(() => {
@@ -253,45 +313,49 @@ export default function AthleteWodReadOnly() {
           <div className="flex-1">
             <Input
               placeholder="Search or type command..."
-              defaultValue={searchText}
+              value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3 sm:flex sm:items-center">
+            <div>
+              <select
+                className="h-11 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-800 shadow-theme-xs outline-none focus:border-brand-500 dark:border-gray-800 dark:bg-transparent dark:text-white/90"
+                value={track}
+                onChange={(e) => setTrack(String(e.target.value))}
+              >
+                {trackOptions.map((o) => (
+                  <option key={String(o.value)} value={String(o.value)}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            </div>
             <Select
-              options={trackOptions}
-              placeholder="Track"
-              onChange={(v) => setTrack(String(v))}
-              defaultValue={track}
-            />
-            <Select
+                key={`month-${year}-${month}-${selectedDate || ""}`}
               options={monthOptions}
               placeholder="Month"
               onChange={(v) => setMonth(Number(v))}
-              defaultValue={String(month)}
+              value={String(month)}
             />
-            <Select
-              options={yearOptions}
-              placeholder="Year"
-              onChange={(v) => setYear(Number(v))}
-              defaultValue={String(year)}
-            />
+            <div>
+              <select
+                className="h-11 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-800 shadow-theme-xs outline-none focus:border-brand-500 dark:border-gray-800 dark:bg-transparent dark:text-white/90"
+                value={String(year)}
+                onChange={(e) => setYear(Number(e.target.value))}
+              >
+                {yearOptions.map((o) => (
+                  <option key={String(o.value)} value={String(o.value)}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
           </div>
 
-          <div className="sm:ml-auto">
-            <Button variant="primary" onClick={onSearchClick}>
-              Buscar
-              <svg className="fill-current" width="20" height="20" viewBox="0 0 20 20">
-                <path
-                  fillRule="evenodd"
-                  clipRule="evenodd"
-                  d="M3.04199 9.37363C3.04199 5.87693 5.87735 3.04199 9.37533 3.04199C12.8733 3.04199 15.7087 5.87693 15.7087 9.37363C15.7087 12.8703 12.8733 15.7053 9.37533 15.7053C5.87735 15.7053 3.04199 12.8703 3.04199 9.37363ZM9.37533 1.54199C5.04926 1.54199 1.54199 5.04817 1.54199 9.37363C1.54199 13.6991 5.04926 17.2053 9.37533 17.2053C11.2676 17.2053 13.0032 16.5344 14.3572 15.4176L17.1773 18.238C17.4702 18.5309 17.945 18.5309 18.2379 18.238C18.5308 17.9451 18.5309 17.4703 18.238 17.1773L15.4182 14.3573C16.5367 13.0033 17.2087 11.2669 17.2087 9.37363C17.2087 5.04817 13.7014 1.54199 9.37533 1.54199Z"
-                  fill="currentColor"
-                />
-              </svg>
-            </Button>
-          </div>
+          {/* live filters: no search button */}
         </div>
       </div>
 

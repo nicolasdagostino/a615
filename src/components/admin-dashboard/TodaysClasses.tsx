@@ -139,8 +139,11 @@ export default function TodaysClasses() {
 
         <div className="space-y-3">
           {items.map((c) => {
-            const { y, m } = monthYearFromISO(data?.date || "");
-            const href = `/admin/wod-feed?track=${c.type}&year=${y}&month=${m}`;
+            const dateISO = (c.wod?.wodDate || data?.date || "").trim();
+            const href = `/admin/wod-feed?track=${encodeURIComponent(c.type)}${
+              dateISO ? `&date=${encodeURIComponent(dateISO)}` : ""
+            }`;
+            
 
             return (
               <div
