@@ -6,15 +6,20 @@ import {
   CalenderIcon,
   TaskIcon,
   TableIcon,
-  ChatIcon,
   PlugInIcon,
 } from "@/icons";
 
 export const adminNav: NavItem[] = [
   { name: "Dashboard", icon: <GridIcon />, path: "/admin/dashboard" },
+  { name: "Sesiones", icon: <CalenderIcon />, path: "/admin/sessions" },
   { name: "Miembros", icon: <UserCircleIcon />, path: "/admin/members" },
-  { name: "Clases", icon: <CalenderIcon />, path: "/admin/classes" },
-  { name: "Reservas", icon: <TaskIcon />, path: "/admin/reservations" },
+
+  // Admin management
+  { name: "Clases (Admin)", icon: <CalenderIcon />, path: "/admin/classes" },
+  { name: "Reservas (Admin)", icon: <TaskIcon />, path: "/admin/reservations" },
+
+  // Booking as user
+
   { name: "Planes & Pagos", icon: <TableIcon />, path: "/admin/payments" },
   { name: "WODs", icon: <TaskIcon />, path: "/admin/wod" },
   { name: "WOD Feed", icon: <TaskIcon />, path: "/admin/wod-feed" },
