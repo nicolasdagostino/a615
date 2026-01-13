@@ -11,6 +11,8 @@ import {
 
 export const adminNav: NavItem[] = [
   { name: "Dashboard", icon: <GridIcon />, path: "/admin/dashboard" },
+  { name: "Asistencia", icon: <TaskIcon />, path: "/admin/attendance" },
+
   { name: "Sesiones", icon: <CalenderIcon />, path: "/admin/sessions" },
   { name: "Miembros", icon: <UserCircleIcon />, path: "/admin/members" },
 

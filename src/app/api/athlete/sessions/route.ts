@@ -19,9 +19,12 @@ function addDaysISO(dateISO: string, days: number): string {
   return `${y}-${m}-${dd}`;
 }
 
+type MyReservationStatus = "active" | "cancelled" | null;
+type AttendanceStatus = "present" | "absent" | null;
+
 /**
  * GET /api/athlete/sessions?date=YYYY-MM-DD&days=7
- * Response: sesiones con reservedCount + flag reservedByMe
+ * Response: sesiones con reservedCount + reservedByMe + myReservationStatus + attendanceStatus
  */
 export async function GET(req: Request) {
   try {
@@ -43,10 +46,9 @@ export async function GET(req: Request) {
     }
 
     const dateTo = addDaysISO(baseDate, days); // exclusive
-
     const admin = createAdminClient();
 
-    // 1) Traer sesiones + clase base
+    // 1) Sesiones + clase base
     const { data: sessions, error: sErr } = await admin
       .from("class_sessions")
       .select(`
@@ -69,33 +71,60 @@ export async function GET(req: Request) {
 
     if (sErr) return NextResponse.json({ error: sErr.message }, { status: 400 });
 
-    const ids = (sessions || []).map((x: any) => x.id);
+    const ids = (sessions || []).map((x: any) => String(x.id));
 
-    // 2) Contar reservados por sesión (view)
+    // 2) reservedCount por sesión
     const { data: counts } = await admin
       .from("v_session_reserved_counts")
       .select("session_id, reserved_count")
       .in("session_id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]);
 
     const countMap = new Map<string, number>();
-    (counts || []).forEach((r: any) => countMap.set(String(r.session_id), Number(r.reserved_count || 0)));
+    (counts || []).forEach((r: any) =>
+      countMap.set(String(r.session_id), Number(r.reserved_count || 0))
+    );
 
-    // 3) Mis reservas para marcar reservedByMe
-    const { data: myRes } = await admin
+    // 3) Mis reservas (activa o cancelada) para setear flags y permitir historial
+    const { data: myRes, error: myErr } = await admin
       .from("reservations")
-      .select("session_id")
+      .select("session_id, cancelled_at")
       .eq("user_id", user.id)
-      .is("cancelled_at", null)
       .in("session_id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]);
 
-    const mySet = new Set<string>((myRes || []).map((r: any) => String(r.session_id)));
+    if (myErr) return NextResponse.json({ error: myErr.message }, { status: 400 });
+
+    const myMap = new Map<string, MyReservationStatus>();
+    (myRes || []).forEach((r: any) => {
+      const sid = String(r.session_id);
+      myMap.set(sid, r.cancelled_at ? "cancelled" : "active");
+    });
+
+    // 4) Attendance del usuario para esas sesiones (si existe)
+    const { data: attRows, error: aErr } = await admin
+      .from("attendance")
+      .select("session_id, status")
+      .eq("user_id", user.id)
+      .in("session_id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]);
+
+    if (aErr) return NextResponse.json({ error: aErr.message }, { status: 400 });
+
+    const attMap = new Map<string, AttendanceStatus>();
+    (attRows || []).forEach((a: any) => {
+      const sid = String(a.session_id);
+      const st = String(a.status || "").toLowerCase();
+      attMap.set(sid, st === "present" ? "present" : st === "absent" ? "absent" : null);
+    });
 
     const out = (sessions || []).map((s: any) => {
-      const reservedCount = countMap.get(String(s.id)) ?? 0;
+      const sid = String(s.id);
+      const reservedCount = countMap.get(sid) ?? 0;
+      const myReservationStatus = myMap.get(sid) ?? null;
+      const attendanceStatus = attMap.get(sid) ?? null;
+
       return {
-        id: String(s.id),
+        id: sid,
         date: String(s.session_date),
-        time: String(s.start_time).slice(0, 5), // HH:MM
+        time: String(s.start_time).slice(0, 5),
         durationMin: Number(s.duration_min ?? 60),
         capacity: Number(s.capacity ?? 12),
         reservedCount,
@@ -108,7 +137,9 @@ export async function GET(req: Request) {
           coach: String(s.classes?.coach || ""),
           type: String(s.classes?.type || ""),
         },
-        reservedByMe: mySet.has(String(s.id)),
+        reservedByMe: myReservationStatus === "active",
+        myReservationStatus,        // "active" | "cancelled" | null
+        attendanceStatus,           // "present" | "absent" | null
       };
     });
 

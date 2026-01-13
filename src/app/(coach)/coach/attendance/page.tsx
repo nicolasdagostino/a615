@@ -1,5 +1,5 @@
-import CoachAttendance from "@/components/coach/attendance/CoachAttendance";
+import CoachAttendancePanel from "@/components/coach/attendance/CoachAttendancePanel";
 
 export default function CoachAttendancePage() {
-  return <CoachAttendance />;
+  return <CoachAttendancePanel />;
 }

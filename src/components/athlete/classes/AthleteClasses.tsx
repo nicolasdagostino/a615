@@ -2,12 +2,13 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import Badge from "@/components/ui/badge/Badge";
+import type { BadgeColor } from "@/components/ui/badge/Badge";
 import Button from "@/components/ui/button/Button";
 import { Modal } from "@/components/ui/modal";
 import { useModal } from "@/hooks/useModal";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
 
-/** API shapes (lo que ya estás devolviendo desde /api/athlete/sessions) */
+/** API shapes */
 type ApiSession = {
   id: string;
   date: string; // YYYY-MM-DD
@@ -16,15 +17,32 @@ type ApiSession = {
   capacity: number;
   reservedCount: number;
   remaining: number;
-  status: string; // scheduled | full | cancelled (etc)
+  status: string;
   notes?: string | null;
   class: {
     id: string;
     name: string;
     coach: string;
-    type: string; // crossfit/open-box/weightlifting/...
+    type: string;
   };
   reservedByMe: boolean;
+};
+
+type HistorySession = {
+  id: string;
+  date: string;
+  time: string;
+  durationMin: number;
+  capacity: number;
+  status: string;
+  notes?: string | null;
+  class: {
+    id: string;
+    name: string;
+    coach: string;
+    type: string;
+  };
+  attendanceStatus: "present" | "absent" | null; // null = pendiente
 };
 
 function pad2(n: number) {
@@ -32,7 +50,6 @@ function pad2(n: number) {
 }
 
 function fmtDateES(iso: string) {
-  // YYYY-MM-DD -> DD/MM/YYYY
   const [y, m, d] = iso.split("-").map(Number);
   return `${pad2(d)}/${pad2(m)}/${y}`;
 }
@@ -60,15 +77,7 @@ function isoTodayMadrid() {
   return `${y}-${m}-${d}`;
 }
 
-function firstDayOfMonthISO(year: number, month: number) {
-  return `${year}-${pad2(month)}-01`;
-}
-
-function isSameMonth(iso: string, year: number, month: number) {
-  return iso.startsWith(`${year}-${pad2(month)}-`);
-}
-
-function badgeForType(type: string): { label: string; color: any } {
+function badgeForType(type: string): { label: string; color: BadgeColor } {
   const t = (type || "").trim().toLowerCase();
   if (t === "open-box" || t === "open box") return { label: "Open Box", color: "warning" };
   if (t === "weightlifting") return { label: "Weightlifting", color: "success" };
@@ -77,12 +86,18 @@ function badgeForType(type: string): { label: string; color: any } {
   return { label: type || "Clase", color: "warning" };
 }
 
-function badgeForStatus(status: string): { label: string; color: any } {
+function badgeForStatus(status: string): { label: string; color: BadgeColor } {
   const s = (status || "").trim().toLowerCase();
   if (s === "scheduled") return { label: "Programada", color: "success" };
   if (s === "full") return { label: "Completa", color: "warning" };
-  if (s === "cancelled") return { label: "Cancelada", color: "error" }; // OJO: no "danger"
+  if (s === "cancelled") return { label: "Cancelada", color: "error" };
   return { label: status || "Estado", color: "warning" };
+}
+
+function badgeForAttendance(st: "present" | "absent" | null): { label: string; color: BadgeColor } {
+  if (st === "present") return { label: "Asistió", color: "success" };
+  if (st === "absent") return { label: "Ausente", color: "error" };
+  return { label: "Pendiente", color: "info" };
 }
 
 export default function AthleteClasses() {
@@ -101,9 +116,9 @@ export default function AthleteClasses() {
 
   // Data
   const [sessionsToday, setSessionsToday] = useState<ApiSession[]>([]);
-  const [sessionsMonth, setSessionsMonth] = useState<ApiSession[]>([]);
+  const [historyMonth, setHistoryMonth] = useState<HistorySession[]>([]);
   const [loadingToday, setLoadingToday] = useState(false);
-  const [loadingMonth, setLoadingMonth] = useState(false);
+  const [loadingHistory, setLoadingHistory] = useState(false);
 
   // Modals confirm
   const reserveModal = useModal();
@@ -116,13 +131,13 @@ export default function AthleteClasses() {
     try {
       const res = await fetch(`/api/athlete/sessions?date=${encodeURIComponent(dateISO)}&days=1`, {
         method: "GET",
-        headers: { "Accept": "application/json" },
+        headers: { Accept: "application/json" },
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(String((data as any)?.error || "Failed to load sessions"));
       const list = Array.isArray((data as any)?.sessions) ? (data as any).sessions : [];
       setSessionsToday(list as ApiSession[]);
-    } catch (e: any) {
+    } catch (e) {
       console.error(e);
       setSessionsToday([]);
     } finally {
@@ -130,25 +145,23 @@ export default function AthleteClasses() {
     }
   };
 
-  const loadMonth = async (yy: number, mm: number) => {
-    setLoadingMonth(true);
+  const loadHistory = async (yy: number, mm: number) => {
+    setLoadingHistory(true);
     try {
-      const from = firstDayOfMonthISO(yy, mm);
-      // Pedimos 31 días y filtramos por mes para simplificar
-      const res = await fetch(`/api/athlete/sessions?date=${encodeURIComponent(from)}&days=31`, {
+      const monthStr = `${yy}-${pad2(mm)}`;
+      const res = await fetch(`/api/athlete/history?month=${encodeURIComponent(monthStr)}`, {
         method: "GET",
-        headers: { "Accept": "application/json" },
+        headers: { Accept: "application/json" },
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(String((data as any)?.error || "Failed to load sessions"));
+      if (!res.ok) throw new Error(String((data as any)?.error || "Failed to load history"));
       const list = Array.isArray((data as any)?.sessions) ? (data as any).sessions : [];
-      const filtered = (list as ApiSession[]).filter((s) => isSameMonth(s.date, yy, mm));
-      setSessionsMonth(filtered);
-    } catch (e: any) {
+      setHistoryMonth(list as HistorySession[]);
+    } catch (e) {
       console.error(e);
-      setSessionsMonth([]);
+      setHistoryMonth([]);
     } finally {
-      setLoadingMonth(false);
+      setLoadingHistory(false);
     }
   };
 
@@ -161,7 +174,7 @@ export default function AthleteClasses() {
 
   useEffect(() => {
     if (tab !== "history") return;
-    loadMonth(year, month);
+    loadHistory(year, month);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab, year, month]);
 
@@ -169,18 +182,21 @@ export default function AthleteClasses() {
     return [...sessionsToday].sort((a, b) => a.time.localeCompare(b.time));
   }, [sessionsToday]);
 
-  const monthReservedOnly = useMemo(() => {
-    // Historial = solo las sesiones en las que estoy reservado (no infinito)
-    // Nota: una cancelación deja reservedByMe=false, así que no aparece aquí (por ahora).
-    return sessionsMonth
-      .filter((s) => s.reservedByMe)
-      .sort((a, b) => (a.date === b.date ? a.time.localeCompare(b.time) : a.date.localeCompare(b.date)));
-  }, [sessionsMonth]);
+  const historySorted = useMemo(() => {
+  // Historial = sesiones pasadas (no futuras), ordenadas
+  const today = todayISO;
+  return [...historyMonth]
+    .filter((s) => String(s.date) < String(today))
+    .sort((a, b) =>
+      a.date === b.date ? a.time.localeCompare(b.time) : a.date.localeCompare(b.date)
+    );
+}, [historyMonth, todayISO]);
 
   const monthOptions = useMemo(
     () => Array.from({ length: 12 }, (_, i) => ({ value: i + 1, label: monthLabel(i + 1) })),
     []
   );
+
   const yearOptions = useMemo(() => {
     const y = defaultYear;
     return [y, y - 1, y - 2, y - 3].map((v) => v);
@@ -204,7 +220,7 @@ export default function AthleteClasses() {
     try {
       const res = await fetch("/api/athlete/reservations", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({ sessionId: target.id }),
       });
       const data = await res.json().catch(() => ({}));
@@ -215,8 +231,7 @@ export default function AthleteClasses() {
       reserveModal.closeModal();
       setTarget(null);
       await loadToday(todayISO);
-      if (tab === "history") await loadMonth(year, month);
-    } catch (e: any) {
+    } catch (e) {
       console.error(e);
       setErrorMsg("No se pudo reservar");
     }
@@ -228,7 +243,7 @@ export default function AthleteClasses() {
     try {
       const res = await fetch("/api/athlete/reservations", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({ sessionId: target.id }),
       });
       const data = await res.json().catch(() => ({}));
@@ -239,33 +254,27 @@ export default function AthleteClasses() {
       cancelModal.closeModal();
       setTarget(null);
       await loadToday(todayISO);
-      if (tab === "history") await loadMonth(year, month);
-    } catch (e: any) {
+    } catch (e) {
       console.error(e);
       setErrorMsg("No se pudo cancelar");
     }
   };
 
   const tabItems = useMemo(() => {
-    const todayCount = todaySorted.length;
-    const histCount = monthReservedOnly.length;
     return [
-      { key: "today" as const, name: "Hoy", count: todayCount },
-      { key: "history" as const, name: "Historial", count: histCount },
+      { key: "today" as const, name: "Hoy", count: todaySorted.length },
+      { key: "history" as const, name: "Historial", count: historySorted.length },
     ];
-  }, [todaySorted.length, monthReservedOnly.length]);
+  }, [todaySorted.length, historySorted.length]);
 
   return (
     <div className="space-y-5">
-      {/* Tabs header estilo template */}
       <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
         <div className="flex flex-col gap-3 border-b border-gray-100 px-5 py-4 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
-              Sesiones
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">Sesiones</h3>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Reservá y gestioná tus clases.
+              Reservá y gestioná tus clases. El historial muestra asistencia.
             </p>
           </div>
 
@@ -295,13 +304,10 @@ export default function AthleteClasses() {
           </div>
         </div>
 
-        {/* Content */}
         <div className="p-5">
           {tab === "today" ? (
             <div className="space-y-3">
-              <div className="text-sm text-gray-500 dark:text-gray-400">
-                {fmtDateES(todayISO)}
-              </div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">{fmtDateES(todayISO)}</div>
 
               {loadingToday ? (
                 <div className="rounded-2xl border border-gray-200 bg-white p-6 text-center text-gray-500 dark:border-gray-800 dark:bg-white/[0.03] dark:text-gray-400">
@@ -313,80 +319,79 @@ export default function AthleteClasses() {
                 </div>
               ) : (
                 todaySorted.map((s) => {
-                  const type = badgeForType(s.class?.type);
-                  const status = badgeForStatus(s.status);
-                  const full = (s.remaining ?? 0) <= 0;
-                  return (
-                    <div
-                      key={s.id}
-                      className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]"
-                    >
-                      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <p className="text-sm font-semibold text-gray-800 dark:text-white/90">
-                              {s.time}
-                            </p>
-                            <Badge size="sm" color={type.color}>{type.label}</Badge>
-                            <Badge size="sm" color={status.color}>{status.label}</Badge>
-                          </div>
+  const type = badgeForType(s.class?.type);
+  const status = badgeForStatus(s.status);
+  const full = (s.remaining ?? 0) <= 0;
 
-                          <p className="text-base font-semibold text-gray-900 dark:text-white/90">
-                            {s.class?.name || "Sesión"}
-                          </p>
+  return (
+    <div
+      key={s.id}
+      className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]"
+    >
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <p className="text-sm font-semibold text-gray-800 dark:text-white/90">
+              {s.time}
+            </p>
+            <Badge size="sm" color={type.color}>{type.label}</Badge>
+            <Badge size="sm" color={status.color}>{status.label}</Badge>
+          </div>
 
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Coach:{" "}
-                            <span className="font-medium text-gray-700 dark:text-gray-300">
-                              {s.class?.coach || "—"}
-                            </span>{" "}
-                            · Cupos:{" "}
-                            <span className="font-medium text-gray-700 dark:text-gray-300">
-                              {s.reservedCount}/{s.capacity}
-                            </span>
-                            {s.notes ? <span> · {s.notes}</span> : null}
-                          </p>
-                        </div>
+          <p className="text-base font-semibold text-gray-900 dark:text-white/90">
+            {s.class?.name || "Sesión"}
+          </p>
 
-                        <div className="flex items-center gap-3">
-                          {full ? (
-                            <span className="rounded-full bg-error-50 px-3 py-1 text-xs font-medium text-error-600 dark:bg-error-500/15 dark:text-error-500">
-                              Completo
-                            </span>
-                          ) : (
-                            <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-600 dark:bg-green-500/15 dark:text-green-500">
-                              Quedan {s.remaining}
-                            </span>
-                          )}
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Coach:{" "}
+            <span className="font-medium text-gray-700 dark:text-gray-300">
+              {s.class?.coach || "—"}
+            </span>{" "}
+            · Cupos:{" "}
+            <span className="font-medium text-gray-700 dark:text-gray-300">
+              {s.reservedCount}/{s.capacity}
+            </span>
+            {s.notes ? <span> · {s.notes}</span> : null}
+          </p>
+        </div>
 
-                          {!s.reservedByMe ? (
-                            <Button
-                              variant="primary"
-                              disabled={full || String(s.status).toLowerCase() !== "scheduled"}
-                              onClick={() => openReserve(s)}
-                            >
-                              Reservar
-                            </Button>
-                          ) : (
-                            <Button variant="outline" onClick={() => openCancel(s)}>
-                              Cancelar
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
+        <div className="flex items-center gap-3">
+          {full ? (
+            <span className="rounded-full bg-error-50 px-3 py-1 text-xs font-medium text-error-600 dark:bg-error-500/15 dark:text-error-500">
+              Completo
+            </span>
+          ) : (
+            <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-600 dark:bg-green-500/15 dark:text-green-500">
+              Quedan {s.remaining}
+            </span>
+          )}
+
+          {!s.reservedByMe ? (
+            <Button
+              variant="primary"
+              disabled={full || String(s.status).toLowerCase() !== "scheduled"}
+              onClick={() => openReserve(s)}
+            >
+              Reservar
+            </Button>
+          ) : (
+            <Button variant="outline" onClick={() => openCancel(s)}>
+              Cancelar
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}))}
             </div>
           ) : (
             <div className="space-y-4">
-              {/* filtros mes/año */}
               <div className="grid grid-cols-2 gap-3 sm:flex sm:items-center sm:justify-between">
                 <div className="flex items-center gap-3">
                   <div className="relative">
                     <select
-                      className="h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 pr-11 text-sm shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+                      className="h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 pr-11 text-sm shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
                       value={String(month)}
                       onChange={(e) => setMonth(Number(e.target.value))}
                     >
@@ -401,7 +406,7 @@ export default function AthleteClasses() {
 
                   <div className="relative">
                     <select
-                      className="h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 pr-11 text-sm shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+                      className="h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 pr-11 text-sm shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
                       value={String(year)}
                       onChange={(e) => setYear(Number(e.target.value))}
                     >
@@ -416,17 +421,17 @@ export default function AthleteClasses() {
                 </div>
 
                 <div className="text-sm text-gray-500 dark:text-gray-400 sm:text-right">
-                  Mis reservas del mes
+                  Sesiones pasadas (asistencia)
                 </div>
               </div>
 
-              {loadingMonth ? (
+              {loadingHistory ? (
                 <div className="rounded-2xl border border-gray-200 bg-white p-6 text-center text-gray-500 dark:border-gray-800 dark:bg-white/[0.03] dark:text-gray-400">
                   Cargando historial…
                 </div>
-              ) : monthReservedOnly.length === 0 ? (
+              ) : historySorted.length === 0 ? (
                 <div className="rounded-2xl border border-gray-200 bg-white p-6 text-center text-gray-500 dark:border-gray-800 dark:bg-white/[0.03] dark:text-gray-400">
-                  No tenés reservas en {monthLabel(month)} {year}.
+                  No hay historial en {monthLabel(month)} {year}.
                 </div>
               ) : (
                 <div className="overflow-x-auto custom-scrollbar rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
@@ -449,18 +454,16 @@ export default function AthleteClasses() {
                           Tipo
                         </TableCell>
                         <TableCell isHeader className="px-5 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400">
-                          Estado
-                        </TableCell>
-                        <TableCell isHeader className="px-5 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400">
-                          Acción
+                          Asistencia
                         </TableCell>
                       </TableRow>
                     </TableHeader>
 
                     <TableBody className="divide-y divide-gray-200 dark:divide-gray-800">
-                      {monthReservedOnly.map((s) => {
+                      {historySorted.map((s) => {
                         const type = badgeForType(s.class?.type);
-                        const status = badgeForStatus(s.status);
+                        const att = badgeForAttendance(s.attendanceStatus);
+
                         return (
                           <TableRow key={s.id} className="transition hover:bg-gray-50 dark:hover:bg-gray-900">
                             <TableCell className="px-5 py-4 whitespace-nowrap">
@@ -470,9 +473,7 @@ export default function AthleteClasses() {
                             </TableCell>
 
                             <TableCell className="px-5 py-4 whitespace-nowrap">
-                              <p className="text-sm text-gray-500 dark:text-gray-400">
-                                {s.time}
-                              </p>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">{s.time}</p>
                             </TableCell>
 
                             <TableCell className="px-5 py-4 whitespace-nowrap">
@@ -492,13 +493,7 @@ export default function AthleteClasses() {
                             </TableCell>
 
                             <TableCell className="px-5 py-4 whitespace-nowrap">
-                              <Badge size="sm" color={status.color}>{status.label}</Badge>
-                            </TableCell>
-
-                            <TableCell className="px-5 py-4 whitespace-nowrap">
-                              <Button variant="outline" size="sm" onClick={() => openCancel(s)}>
-                                Cancelar
-                              </Button>
+                              <Badge size="sm" color={att.color}>{att.label}</Badge>
                             </TableCell>
                           </TableRow>
                         );
@@ -513,11 +508,7 @@ export default function AthleteClasses() {
       </div>
 
       {/* Reserve modal */}
-      <Modal
-        isOpen={reserveModal.isOpen}
-        onClose={reserveModal.closeModal}
-        className="max-w-[600px] p-5 lg:p-10 m-4"
-      >
+      <Modal isOpen={reserveModal.isOpen} onClose={reserveModal.closeModal} className="max-w-[600px] p-5 lg:p-10 m-4">
         <div className="text-center">
           <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90 sm:text-title-sm">
             Confirmar reserva
@@ -533,11 +524,7 @@ export default function AthleteClasses() {
             </p>
           ) : null}
 
-          {errorMsg ? (
-            <p className="mt-3 text-sm text-error-600 dark:text-error-500">
-              {errorMsg}
-            </p>
-          ) : null}
+          {errorMsg ? <p className="mt-3 text-sm text-error-600 dark:text-error-500">{errorMsg}</p> : null}
 
           <div className="mt-7 flex w-full items-center justify-center gap-3">
             <button
@@ -560,11 +547,7 @@ export default function AthleteClasses() {
       </Modal>
 
       {/* Cancel modal */}
-      <Modal
-        isOpen={cancelModal.isOpen}
-        onClose={cancelModal.closeModal}
-        className="max-w-[600px] p-5 lg:p-10 m-4"
-      >
+      <Modal isOpen={cancelModal.isOpen} onClose={cancelModal.closeModal} className="max-w-[600px] p-5 lg:p-10 m-4">
         <div className="text-center">
           <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90 sm:text-title-sm">
             ¿Cancelar reserva?
@@ -580,11 +563,7 @@ export default function AthleteClasses() {
             </p>
           ) : null}
 
-          {errorMsg ? (
-            <p className="mt-3 text-sm text-error-600 dark:text-error-500">
-              {errorMsg}
-            </p>
-          ) : null}
+          {errorMsg ? <p className="mt-3 text-sm text-error-600 dark:text-error-500">{errorMsg}</p> : null}
 
           <div className="mt-7 flex w-full items-center justify-center gap-3">
             <button
