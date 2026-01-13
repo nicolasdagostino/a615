@@ -16,9 +16,7 @@ export const adminNav: NavItem[] = [
 
   // Admin management
   { name: "Clases (Admin)", icon: <CalenderIcon />, path: "/admin/classes" },
-  { name: "Reservas (Admin)", icon: <TaskIcon />, path: "/admin/reservations" },
-
-  // Booking as user
+// Booking as user
 
   { name: "Planes & Pagos", icon: <TableIcon />, path: "/admin/payments" },
   { name: "WODs", icon: <TaskIcon />, path: "/admin/wod" },

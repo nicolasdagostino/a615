@@ -6,8 +6,7 @@ export const athleteNav: NavItem[] = [
   { name: "Inicio", icon: <GridIcon />, path: "/athlete/home" },
 
   // antes: Reservas -> ahora: Clases
-  { name: "Clases", icon: <CalenderIcon />, path: "/athlete/classes" },
-
-  { name: "WOD", icon: <TaskIcon />, path: "/athlete/wod" },
+  { name: "Sesiones", icon: <CalenderIcon />, path: "/athlete/classes" },
+{ name: "WOD", icon: <TaskIcon />, path: "/athlete/wod" },
   { name: "Perfil", icon: <UserCircleIcon />, path: "/athlete/profile" },
 ];

@@ -1,10 +1,6 @@
-import AthleteReservations from "@/components/athlete/reservations/AthleteReservations";
-import { ReservationsProvider } from "@/components/athlete/reservations/reservationsStore";
+import AthleteClasses from "@/components/athlete/classes/AthleteClasses";
 
-export default function AthleteReservationsPage() {
-  return (
-    <ReservationsProvider>
-      <AthleteReservations />
-    </ReservationsProvider>
-  );
+export default function AthleteReservationsLegacyPage() {
+  // Legacy page: mantenida sólo para no romper typed routes en build
+  return <AthleteClasses />;
 }
