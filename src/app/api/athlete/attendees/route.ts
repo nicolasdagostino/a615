@@ -10,7 +10,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Missing sessionId" }, { status: 400 });
   }
 
-  // Auth required (pero sin restricción de rol)
+  // Auth required (no role restriction)
   const supabase = await createClient();
   const { data: auth, error: authErr } = await supabase.auth.getUser();
   if (authErr || !auth?.user) {
@@ -19,7 +19,7 @@ export async function GET(req: Request) {
 
   const admin = createAdminClient();
 
-  // 1) reservations activas de la sesión
+  // 1) Active reservations for the session
   const { data: reservations, error: rErr } = await admin
     .from("reservations")
     .select("user_id")
@@ -30,33 +30,33 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: rErr.message }, { status: 500 });
   }
 
-  const userIds = Array.from(new Set((reservations ?? []).map((r) => r.user_id).filter(Boolean)));
+  const userIds = Array.from(new Set((reservations ?? []).map((r: any) => r.user_id).filter(Boolean)));
   if (userIds.length === 0) {
     return NextResponse.json({ attendees: [] }, { status: 200 });
   }
 
-  // 2) profiles para emails
+  // 2) Profiles (full_name)
   const { data: profiles, error: pErr } = await admin
     .from("profiles")
-    .select("id,email,role")
+    .select("id, full_name")
     .in("id", userIds);
 
   if (pErr) {
     return NextResponse.json({ error: pErr.message }, { status: 500 });
   }
 
-  const profMap = new Map((profiles ?? []).map((p) => [p.id, p]));
+  const profMap = new Map((profiles ?? []).map((p: any) => [String(p.id), p]));
 
   const attendees = userIds
     .map((id) => {
-      const p = profMap.get(id);
+      const p = profMap.get(String(id));
+      const fullName = String(p?.full_name || "").trim();
       return {
-        userId: id,
-        email: p?.email ?? null,
-        role: p?.role ?? null,
+        userId: String(id),
+        fullName: fullName || null,
       };
     })
-    .sort((a, b) => String(a.email ?? a.userId).localeCompare(String(b.email ?? b.userId)));
+    .sort((a, b) => String(a.fullName || a.userId).localeCompare(String(b.fullName || b.userId)));
 
   return NextResponse.json({ attendees }, { status: 200 });
 }

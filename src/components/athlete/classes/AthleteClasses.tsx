@@ -8,6 +8,8 @@ import { Modal } from "@/components/ui/modal";
 import { useModal } from "@/hooks/useModal";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
 import RoundedRibbon from "@/components/ui/ribbons/RoundedRibbon";
+import FilledRibbon from "@/components/ui/ribbons/FilledRibbon";
+
 
 /** API shapes */
 type ApiSession = {
@@ -46,7 +48,7 @@ type HistorySession = {
   attendanceStatus: "present" | "absent" | null; // null = pendiente
 };
 
-type AttendeeLite = { userId: string; email: string | null; role: string | null };
+type AttendeeLite = { userId: string; fullName: string | null };
 
 function pad2(n: number) {
   return String(n).padStart(2, "0");
@@ -64,8 +66,8 @@ function fmtDDMM(iso: string) {
 
 function monthLabel(m: number) {
   const labels = [
-    "Enero","Febrero","Marzo","Abril","Mayo","Junio",
-    "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre",
+    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
   ];
   return labels[m - 1] ?? String(m);
 }
@@ -350,28 +352,24 @@ export default function AthleteClasses() {
           <div className="grid grid-cols-2 items-center gap-x-1 gap-y-2 rounded-lg bg-gray-100 p-0.5 dark:bg-gray-900">
             <button
               onClick={() => setView("week")}
-              className={`inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium hover:text-gray-900 dark:hover:text-white ${
-                view === "week" ? "bg-white text-gray-900 dark:bg-gray-800 dark:text-white" : "text-gray-500 dark:text-gray-400"
-              }`}
+              className={`inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium hover:text-gray-900 dark:hover:text-white ${view === "week" ? "bg-white text-gray-900 dark:bg-gray-800 dark:text-white" : "text-gray-500 dark:text-gray-400"
+                }`}
             >
               Week
-              <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium leading-normal ${
-                view === "week" ? "bg-brand-50 text-brand-500 dark:bg-brand-500/15 dark:text-brand-400" : "bg-white dark:bg-white/[0.03]"
-              }`}>
+              <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium leading-normal ${view === "week" ? "bg-brand-50 text-brand-500 dark:bg-brand-500/15 dark:text-brand-400" : "bg-white dark:bg-white/[0.03]"
+                }`}>
                 {weekCount}
               </span>
             </button>
 
             <button
               onClick={() => setView("history")}
-              className={`inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium hover:text-gray-900 dark:hover:text-white ${
-                view === "history" ? "bg-white text-gray-900 dark:bg-gray-800 dark:text-white" : "text-gray-500 dark:text-gray-400"
-              }`}
+              className={`inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium hover:text-gray-900 dark:hover:text-white ${view === "history" ? "bg-white text-gray-900 dark:bg-gray-800 dark:text-white" : "text-gray-500 dark:text-gray-400"
+                }`}
             >
               History
-              <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium leading-normal ${
-                view === "history" ? "bg-brand-50 text-brand-500 dark:bg-brand-500/15 dark:text-brand-400" : "bg-white dark:bg-white/[0.03]"
-              }`}>
+              <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium leading-normal ${view === "history" ? "bg-brand-50 text-brand-500 dark:bg-brand-500/15 dark:text-brand-400" : "bg-white dark:bg-white/[0.03]"
+                }`}>
                 {historyCount}
               </span>
             </button>
@@ -390,11 +388,10 @@ export default function AthleteClasses() {
                       <button
                         key={d}
                         onClick={() => setActiveDayISO(d)}
-                        className={`inline-flex items-center rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-                          active
+                        className={`inline-flex items-center rounded-lg px-4 py-2 text-sm font-medium transition-colors ${active
                             ? "bg-brand-50 text-brand-500 dark:bg-brand-400/20 dark:text-brand-400"
                             : "bg-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                        }`}
+                          }`}
                       >
                         {fmtDDMM(d)}
                       </button>
@@ -408,13 +405,46 @@ export default function AthleteClasses() {
                   Selected day:{" "}
                   <span className="font-medium text-gray-700 dark:text-gray-200">{fmtDateES(activeDayISO)}</span>
                 </span>
-                <button
-                  className="text-brand-500 hover:text-brand-600 dark:text-brand-400"
-                  onClick={() => loadWeek(weekStartISO)}
-                  disabled={loadingWeek}
-                >
-                  Reload
-                </button>
+                <div className="group relative inline-block">
+  <button
+    type="button"
+    onClick={() => loadWeek(weekStartISO)}
+    disabled={loadingWeek}
+    aria-label="Reload"
+    className={`shadow-theme-xs inline-flex h-11 w-11 items-center justify-center rounded-lg border border-gray-300 text-gray-700 dark:border-gray-700 dark:text-gray-400 ${
+      loadingWeek
+        ? "opacity-50 cursor-not-allowed"
+        : "hover:bg-gray-50 dark:hover:bg-white/[0.03] dark:hover:text-gray-200"
+    }`}
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="20"
+      height="20"
+      viewBox="0 0 20 20"
+      fill="none"
+    >
+      <path
+        d="M17.0436 8.11306C16.6282 6.56272 15.7128 5.19276 14.4395 4.21568C13.1661 3.2386 11.6059 2.70898 10.0009 2.70898C8.39585 2.70898 6.83566 3.2386 5.5623 4.21568C4.28894 5.19276 3.37357 6.56271 2.95816 8.11306C2.87345 8.42919 2.81944 8.65089 2.78711 8.80352M2.9559 11.8866C3.37131 13.437 4.28668 14.8069 5.56004 15.784C6.8334 16.7611 8.39359 17.2907 9.99862 17.2907C11.6037 17.2907 13.1638 16.7611 14.4372 15.784C15.7106 14.8069 16.6259 13.437 17.0414 11.8866C17.1278 11.5641 17.1826 11.3399 17.2152 11.1871M5.4327 7.49705L2.86544 8.94265L2.78711 8.80352M1.41992 6.37512L2.78711 8.80352M14.575 12.503L17.1422 11.0574L17.2152 11.1871M18.5877 13.6249L17.2152 11.1871"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  </button>
+
+  {/* Tooltip igual al template (opcional) */}
+  <div className="invisible absolute bottom-full left-1/2 z-9999 mb-2.5 -translate-x-1/2 opacity-0 transition-opacity duration-300 group-hover:visible group-hover:opacity-100">
+    <div className="relative">
+      <div className="rounded-lg bg-white px-3 py-2 text-xs font-medium whitespace-nowrap text-gray-700 shadow-xs dark:bg-[#1E2634] dark:text-white">
+        Reload
+      </div>
+      <div className="absolute -bottom-1 left-1/2 h-3 w-4 -translate-x-1/2 rotate-45 bg-white dark:bg-[#1E2634]"></div>
+    </div>
+  </div>
+</div>
+
               </div>
 
               {loadingWeek ? (
@@ -440,6 +470,14 @@ export default function AthleteClasses() {
                             {s.time}
                           </Badge>
                         </div>
+                        {s.reservedByMe ? (
+                          <FilledRibbon
+                            badgeOnly
+                            label="Reserved"
+                            position="bottom-right"
+                            ribbonClassName="bg-success-500"
+                          />
+                        ) : null}
 
                         <RoundedRibbon label={ribbonLabel} ribbonClassName={ribbonColorClassFor(ribbonLabel)} className="h-full">
                           <div className="p-5 pt-16 sm:p-6 sm:pt-16">
@@ -452,7 +490,7 @@ export default function AthleteClasses() {
                               </p>
 
                               <p className="text-sm text-gray-500 dark:text-gray-400">
-                                Cupos:{" "}
+                                Spots:{" "}
                                 <span className="font-medium text-gray-700 dark:text-gray-200">
                                   {s.reservedCount}/{s.capacity}
                                 </span>
@@ -482,18 +520,49 @@ export default function AthleteClasses() {
                                     variant="primary"
                                     disabled={disabledReserve}
                                     onClick={() => openReserve(s)}
+                                    className="h-9 px-4 py-0"
                                   >
                                     Reserve
                                   </Button>
                                 ) : (
-                                  <Button variant="outline" onClick={() => openCancel(s)}>
+                                  <Button variant="outline" onClick={() => openCancel(s)}
+                                  className="h-9 px-4 py-0"
+                                  >
                                     Cancel
                                   </Button>
                                 )}
 
-                                <Button variant="outline" onClick={() => openDetails(s)}>
-                                  Details
-                                </Button>
+                                <button
+                                  type="button"
+                                  onClick={() => openDetails(s)}
+                                  className="shadow-theme-xs inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 text-gray-500 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200"
+                                >
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="21"
+                                    height="20"
+                                    viewBox="0 0 21 20"
+                                    fill="none"
+                                  >
+                                    <path
+                                      d="M2.96487 10.7925C2.73306 10.2899 2.73306 9.71023 2.96487 9.20764C4.28084 6.35442 7.15966 4.375 10.4993 4.375C13.8389 4.375 16.7178 6.35442 18.0337 9.20765C18.2655 9.71024 18.2655 10.2899 18.0337 10.7925C16.7178 13.6458 13.8389 15.6252 10.4993 15.6252C7.15966 15.6252 4.28084 13.6458 2.96487 10.7925Z"
+                                      stroke="currentColor"
+                                      strokeWidth="1.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                    <path
+                                      d="M13.5202 10C13.5202 11.6684 12.1677 13.0208 10.4993 13.0208C8.83099 13.0208 7.47852 11.6684 7.47852 10C7.47852 8.33164 8.83099 6.97917 10.4993 6.97917C12.1677 6.97917 13.5202 8.33164 13.5202 10Z"
+                                      stroke="currentColor"
+                                      strokeWidth="1.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                  </svg>
+                                </button>
+
+
+
                               </div>
                             </div>
                           </div>
@@ -651,7 +720,7 @@ export default function AthleteClasses() {
               onClick={doReserve}
               className="flex justify-center rounded-lg bg-brand-500 px-4 py-3 text-sm font-medium text-white shadow-theme-xs hover:bg-brand-600"
             >
-              Confirmar
+              Confirm
             </button>
           </div>
         </div>
@@ -661,7 +730,7 @@ export default function AthleteClasses() {
       <Modal isOpen={cancelModal.isOpen} onClose={cancelModal.closeModal} className="max-w-[600px] p-5 lg:p-10 m-4">
         <div className="text-center">
           <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90 sm:text-title-sm">
-            ¿Cancel reserva?
+          Cancel reservation?
           </h4>
 
           {target ? (
@@ -690,7 +759,7 @@ export default function AthleteClasses() {
               onClick={doCancel}
               className="flex justify-center rounded-lg bg-error-500 px-4 py-3 text-sm font-medium text-white shadow-theme-xs hover:bg-error-600"
             >
-              Sí, cancelar
+              Yes, cancel
             </button>
           </div>
         </div>
@@ -726,33 +795,41 @@ export default function AthleteClasses() {
             </div>
           ) : (
             <div className="overflow-x-auto custom-scrollbar rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
-              <Table>
-                <TableHeader className="border-y border-gray-200 dark:border-gray-800">
-                  <TableRow>
-                    <TableCell isHeader className="px-5 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400">
-                      Email
-                    </TableCell>
-                    <TableCell isHeader className="px-5 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400">
-                      Role
-                    </TableCell>
-                  </TableRow>
-                </TableHeader>
-                <TableBody className="divide-y divide-gray-200 dark:divide-gray-800">
-                  {attendees.map((a) => (
-                    <TableRow key={a.userId} className="transition hover:bg-gray-50 dark:hover:bg-gray-900">
-                      <TableCell className="px-5 py-4 whitespace-nowrap">
-                        <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                          {a.email || a.userId}
-                        </p>
-                      </TableCell>
-                      <TableCell className="px-5 py-4 whitespace-nowrap">
-                        <Badge size="sm" color="info">{a.role || "—"}</Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+  <Table>
+    <TableHeader className="border-y border-gray-200 dark:border-gray-800">
+      <TableRow>
+        <TableCell
+          isHeader
+          className="px-5 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400"
+        >
+          Name
+        </TableCell>
+      </TableRow>
+    </TableHeader>
+
+    <TableBody className="divide-y divide-gray-200 dark:divide-gray-800">
+      {attendees.map((a) => {
+        const name =
+          a.fullName?.split("@")[0] ||
+          `Member ${String(a.userId).slice(0, 8)}`;
+
+        return (
+          <TableRow
+            key={a.userId}
+            className="transition hover:bg-gray-50 dark:hover:bg-gray-900"
+          >
+            <TableCell className="px-5 py-4 whitespace-nowrap">
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                {name}
+              </p>
+            </TableCell>
+          </TableRow>
+        );
+      })}
+    </TableBody>
+  </Table>
+</div>
+
           )}
 
           <div className="flex justify-end">

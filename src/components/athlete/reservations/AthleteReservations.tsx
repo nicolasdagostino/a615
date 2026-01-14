@@ -183,7 +183,7 @@ export default function AthleteReservations() {
                   </p>
 
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Coach: <span className="font-medium">{s.class.coach}</span> · Cupos:{" "}
+                    Coach: <span className="font-medium">{s.class.coach}</span> · Spots:{" "}
                     <span className="font-medium">
                       {s.reservedCount}/{s.capacity}
                     </span>
