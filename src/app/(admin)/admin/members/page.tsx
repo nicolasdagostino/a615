@@ -13,7 +13,7 @@ export default function MembersPage() {
   return (
     <div>
       <div className="space-y-5 sm:space-y-6">
-        <ComponentCard title="Members">
+        <ComponentCard title="Members" desc="Manage members, plans, and membership status.">
           <MembersTable />
         </ComponentCard>
       </div>

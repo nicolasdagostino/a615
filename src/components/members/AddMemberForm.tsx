@@ -52,9 +52,9 @@ export default function AddMemberForm({
   ];
 
   const statusOptions = [
-    { value: "active", label: "Activa" },
-    { value: "expiring", label: "Por vencer" },
-    { value: "expired", label: "Vencida" },
+    { value: "active", label: "Active" },
+    { value: "expiring", label: "Expiring" },
+    { value: "expired", label: "Expired" },
   ];
 
   const roleOptions = [

@@ -32,16 +32,16 @@ type MembershipRow = {
   payment_method: string | null;
 };
 
-function mapStatusToUi(status: string | null): "Activa" | "Por vencer" | "Vencida" {
+function mapStatusToUi(status: string | null): "Active" | "Expiring" | "Expired" {
   const s = (status || "").toLowerCase().trim();
 
   // Aceptamos varios formatos para no romper datos existentes
-  if (s === "active" || s === "activa") return "Activa";
-  if (s === "expiring" || s === "por vencer" || s === "porvencer") return "Por vencer";
-  if (s === "expired" || s === "vencida") return "Vencida";
+  if (s === "active" || s === "activa") return "Active";
+  if (s === "expiring" || s === "por vencer" || s === "porvencer") return "Expiring";
+  if (s === "expired" || s === "vencida") return "Expired";
 
   // fallback
-  return "Activa";
+  return "Active";
 }
 
 function formatFee(monthlyFee: number | null): string {

@@ -28,7 +28,7 @@ type MemberRow = {
   plan: string;
   expiresAt: string; // "YYYY-MM-DD" o "—"
   role: "admin" | "coach" | "athlete";
-  status?: string; // "Activa" | "Por vencer" | "Vencida" | "—"
+  status?: string; // "Active" | "Expiring" | "Expired" | "—"
 };
 
 function toStartOfDay(date: Date) {
@@ -42,16 +42,16 @@ function daysBetween(a: Date, b: Date) {
   return Math.round(ms / (1000 * 60 * 60 * 24));
 }
 
-type MemberStatus = "Activa" | "Por vencer" | "Vencida";
+type MemberStatus = "Active" | "Expiring" | "Expired";
 
 function getStatus(expiresAtISO: string): MemberStatus {
   const today = toStartOfDay(new Date());
   const exp = toStartOfDay(new Date(expiresAtISO));
   const diff = daysBetween(today, exp);
 
-  if (diff < 0) return "Vencida";
-  if (diff <= 7) return "Por vencer";
-  return "Activa";
+  if (diff < 0) return "Expired";
+  if (diff <= 7) return "Expiring";
+  return "Active";
 }
 
 function roleBadgeColor(role: MemberRow["role"]) {
@@ -363,11 +363,11 @@ export default function MembersTable() {
                         <Badge
                           size="sm"
                           color={
-                            item.status === "Activa"
+                            item.status === "Active"
                               ? "success"
-                              : item.status === "Por vencer"
+                              : item.status === "Expiring"
                               ? "warning"
-                              : item.status === "Vencida"
+                              : item.status === "Expired"
                               ? "error"
                               : "info"
                           }
