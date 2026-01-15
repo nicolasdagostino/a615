@@ -67,17 +67,52 @@ export default function AddClassForm({
     { value: "full", label: "Full" },
     { value: "cancelled", label: "Cancelled" },
   ];
+  const [coachOptions, setCoachOptions] = useState<{ value: string; label: string }[]>([]);
 
-  const coachOptions = [
-    { value: "nico", label: "Nico" },
-    { value: "laura", label: "Laura" },
-    { value: "pablo", label: "Pablo" },
-  ];
+  useEffect(() => {
+    let alive = true;
+
+    async function loadCoaches() {
+      try {
+        const res = await fetch("/api/admin/members", { method: "GET" });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) return;
+
+        const rows = Array.isArray((data as any)?.members) ? (data as any).members : [];
+        const coaches = rows
+          .filter((m: any) => ["coach","admin"].includes(String(m?.role || "").toLowerCase()))
+          .map((m: any) => {
+            const name = String(m?.user?.name || "").trim();
+            return { value: name, label: name };
+          })
+          .filter((o: any) => o.value);
+
+        coaches.sort((a: any, b: any) => String(a.label).localeCompare(String(b.label)));
+
+        if (alive) setCoachOptions(coaches);
+      } catch {
+        // noop
+      }
+    }
+
+    loadCoaches();
+    return () => {
+      alive = false;
+    };
+  }, []);
+
 
   // ✅ IMPORTANT: inicializamos desde defaultValues para que Select tome defaultValue al mount.
   const initial = useMemo(() => normalizeDefaults(defaultValues), [defaultValues]);
 
   const [form, setForm] = useState<Required<ClassFormDefaults>>(initial);
+
+  const resolvedCoachOptions = useMemo(() => {
+    const cur = String(form.coach || "").trim();
+    if (!cur) return coachOptions;
+    const exists = coachOptions.some((o) => o.value === cur);
+    return exists ? coachOptions : [{ value: cur, label: cur }, ...coachOptions];
+  }, [coachOptions, form.coach]);
 
 
     const router = useRouter();
@@ -156,7 +191,8 @@ export default function AddClassForm({
               <div>
                 <Label>Coach</Label>
                 <Select
-                  options={coachOptions}
+                  key={`coach-${resolvedCoachOptions.length}-${form.coach}`}
+                  options={resolvedCoachOptions}
                   placeholder="Select coach"
                   onChange={(value) => setForm((p) => ({ ...p, coach: value }))}
                   defaultValue={form.coach}

@@ -91,7 +91,7 @@ export async function GET(req: Request) {
     if (idParam) {
       const { data: one, error: oneErr } = await admin
         .from("classes")
-        .select("id, name, coach, type, day, time, duration_min, capacity, status, notes")
+        .select("id, name, coach_id, coach_id: coachId, type, day, time, duration_min, capacity, status, notes")
         .eq("id", idParam)
         .single();
 
@@ -100,12 +100,22 @@ export async function GET(req: Request) {
 
       const c = one as any as ClassDbRow;
 
+      // Resolve coach full name (profiles) for detail
+      let coachName = "";
+      const cid = String((c as any).coach_id || "").trim();
+      if (cid) {
+        const { data: prof } = await admin.from("profiles").select("full_name, email").eq("id", cid).single();
+        coachName = String((prof as any)?.full_name || (prof as any)?.email || "").trim();
+      }
+
+
       return NextResponse.json({
         ok: true,
         class: {
           id: String(c.id),
           name: String(c.name || ""),
-          coach: String(c.coach || ""),
+          coachId: String((c as any).coach_id || ""),
+          coach: coachName || "—",
           type: String(c.type || ""),
           day: String(c.day || ""),
           time: String(c.time || ""),
@@ -119,18 +129,42 @@ export async function GET(req: Request) {
 
     const { data, error } = await admin
       .from("classes")
-      .select("id, name, coach, type, day, time, duration_min, capacity, status, notes")
+      .select("id, name, coach_id, coach_id: coachId, type, day, time, duration_min, capacity, status, notes")
       .order("day", { ascending: true })
       .order("time", { ascending: true });
 
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+
+    // Resolve coach full names (profiles) for list view
+    const coachIds = Array.from(
+      new Set((data || []).map((r: any) => String((r as any).coach_id || "")).filter(Boolean))
+    );
+
+    let coachNameById: Record<string, string> = {};
+    if (coachIds.length) {
+      const { data: profs, error: pErr } = await admin
+        .from("profiles")
+        .select("id, full_name, email")
+        .in("id", coachIds);
+
+      if (pErr) return NextResponse.json({ error: pErr.message }, { status: 400 });
+
+      coachNameById = Object.fromEntries(
+        (profs || []).map((p: any) => [
+          String(p.id),
+          String(p.full_name || p.email || "Coach").trim(),
+        ])
+      );
+    }
+
 
     const rows = (data || []).map((r: any) => {
       const c = r as ClassDbRow;
       return {
         id: String(c.id),
         name: String(c.name || ""),
-        coach: mapCoachToUi(String(c.coach || "")),
+        coachId: String((c as any).coach_id || ""),
+          coach: coachNameById[String((c as any).coach_id || "")] || "—",
         day: mapDayToUi(String(c.day || "")),
         time: String(c.time || ""),
         durationMin: Number(c.duration_min ?? 0),
@@ -148,7 +182,7 @@ export async function GET(req: Request) {
 
 /**
  * POST /api/admin/classes
- * body: { name, coach, type, day, time, durationMin, capacity, status, notes }
+ * body: { name, coach_id: coachId, type, day, time, durationMin, capacity, status, notes }
  */
 export async function POST(req: Request) {
   try {
@@ -158,7 +192,7 @@ export async function POST(req: Request) {
     const body = await req.json().catch(() => ({} as any));
 
     const name = String(body.name || "").trim();
-    const coach = String(body.coach || "").trim().toLowerCase();
+    const coachId = String(body.coachId || "").trim();
     const type = String(body.type || "").trim().toLowerCase();
     const day = String(body.day || "").trim().toLowerCase();
     const time = String(body.time || "").trim();
@@ -171,7 +205,7 @@ export async function POST(req: Request) {
     const capacity = capacityRaw ? Number(capacityRaw) : 0;
 
     if (!name) return NextResponse.json({ error: "name is required" }, { status: 400 });
-    if (!coach) return NextResponse.json({ error: "coach is required" }, { status: 400 });
+    if (!coachId) return NextResponse.json({ error: "coachId is required" }, { status: 400 });
     if (!type) return NextResponse.json({ error: "type is required" }, { status: 400 });
     if (!day) return NextResponse.json({ error: "day is required" }, { status: 400 });
     if (!time) return NextResponse.json({ error: "time is required" }, { status: 400 });
@@ -185,7 +219,7 @@ export async function POST(req: Request) {
       .from("classes")
       .insert({
         name,
-        coach,
+        coach_id: coachId,
         type,
         day,
         time,
@@ -207,7 +241,7 @@ export async function POST(req: Request) {
 
 /**
  * PATCH /api/admin/classes
- * body: { id, name, coach, type, day, time, durationMin, capacity, status, notes }
+ * body: { id, name, coach_id: coachId, type, day, time, durationMin, capacity, status, notes }
  */
 export async function PATCH(req: Request) {
   try {
@@ -219,7 +253,7 @@ export async function PATCH(req: Request) {
     if (!id) return NextResponse.json({ error: "id is required" }, { status: 400 });
 
     const name = String(body.name || "").trim();
-    const coach = String(body.coach || "").trim().toLowerCase();
+    const coachId = String(body.coachId || "").trim();
     const type = String(body.type || "").trim().toLowerCase();
     const day = String(body.day || "").trim().toLowerCase();
     const time = String(body.time || "").trim();
@@ -232,7 +266,7 @@ export async function PATCH(req: Request) {
     const capacity = capacityRaw ? Number(capacityRaw) : 0;
 
     if (!name) return NextResponse.json({ error: "name is required" }, { status: 400 });
-    if (!coach) return NextResponse.json({ error: "coach is required" }, { status: 400 });
+    if (!coachId) return NextResponse.json({ error: "coachId is required" }, { status: 400 });
     if (!type) return NextResponse.json({ error: "type is required" }, { status: 400 });
     if (!day) return NextResponse.json({ error: "day is required" }, { status: 400 });
     if (!time) return NextResponse.json({ error: "time is required" }, { status: 400 });
@@ -246,7 +280,7 @@ export async function PATCH(req: Request) {
       .from("classes")
       .update({
         name,
-        coach,
+        coach_id: coachId,
         type,
         day,
         time,
