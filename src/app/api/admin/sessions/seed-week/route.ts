@@ -4,20 +4,16 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 type ClassRow = {
   id: string;
-  name: string;
-  coach: string;
-  type: string;
   day: string; // mon..sun
   time: string; // HH:MM
   duration_min: number;
   capacity: number;
   status: string;
-  notes: string | null;
 };
 
 function toDayCode(d: Date): string {
   // JS: 0=Sun..6=Sat
-  const n = d.getDay();
+  const n = d.getUTCDay();
   if (n === 0) return "sun";
   if (n === 1) return "mon";
   if (n === 2) return "tue";
@@ -74,7 +70,7 @@ export async function POST(req: Request) {
 
     const { data: classes, error: cErr } = await admin
       .from("classes")
-      .select("id, name, coach, type, day, time, duration_min, capacity, status, notes")
+      .select("id, day, time, duration_min, capacity, status")
       .order("day", { ascending: true })
       .order("time", { ascending: true });
 
@@ -102,9 +98,7 @@ export async function POST(req: Request) {
           start_time: startTime,
           duration_min: Number(c.duration_min ?? 60),
           capacity: Number(c.capacity ?? 12),
-          status: String(c.status || "scheduled"),
-          notes: c.notes ?? null,
-        });
+          status: String(c.status || "scheduled"),});
       }
     }
 

@@ -19,14 +19,6 @@ async function assertAdmin() {
   return { ok: true as const, userId: user.id };
 }
 
-function normalizeTrack(track: string) {
-  const t = String(track || "").trim().toLowerCase();
-  // agregá acá lo que uses en tu gym
-  const allowed = new Set(["crossfit", "functional", "weightlifting", "open_gym", "jiujitsu", "kids"]);
-  if (!allowed.has(t)) return null;
-  return t;
-}
-
 function normalizeDate(d: string) {
   const v = String(d || "").trim();
   if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) return null;
@@ -40,10 +32,19 @@ function normalizeType(v: any) {
   return t;
 }
 
+function normalizeUuid(v: any) {
+  const s = String(v || "").trim();
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(s)) return null;
+  return s;
+}
+
 function toUi(row: any) {
   return {
     id: String(row.id),
     wodDate: String(row.wod_date || ""),
+    programId: String(row.program_id || ""),
+    programName: String((row as any)?.programs?.name || ""),
+    // legacy / no romper cosas viejas:
     track: String(row.track || ""),
     title: row.title ?? "",
     type: String(row.type ?? ""),
@@ -66,12 +67,12 @@ export async function GET(req: Request) {
     const id = String(url.searchParams.get("id") || "").trim();
     const date = String(url.searchParams.get("date") || "").trim();
     const month = String(url.searchParams.get("month") || "").trim(); // YYYY-MM
-    const track = String(url.searchParams.get("track") || "").trim();
+    const programId = String(url.searchParams.get("programId") || url.searchParams.get("program_id") || "").trim();
 
     if (id) {
       const { data, error } = await admin
         .from("wods")
-        .select("id, wod_date, track, title, type, workout, coach_notes, is_published, created_at, updated_at")
+        .select("id, wod_date, program_id, programs(name), track, title, type, workout, coach_notes, is_published, created_at, updated_at")
         .eq("id", id)
         .single();
 
@@ -83,9 +84,8 @@ export async function GET(req: Request) {
 
     let query = admin
       .from("wods")
-      .select("id, wod_date, track, title, type, workout, coach_notes, is_published, created_at, updated_at")
-      .order("wod_date", { ascending: false })
-      .order("track", { ascending: true });
+      .select("id, wod_date, program_id, programs(name), track, title, type, workout, coach_notes, is_published, created_at, updated_at")
+      .order("wod_date", { ascending: false });
 
     if (date) {
       const nd = normalizeDate(date);
@@ -102,10 +102,10 @@ export async function GET(req: Request) {
       query = query.gte("wod_date", start).lt("wod_date", endExclusive);
     }
 
-    if (track) {
-      const nt = normalizeTrack(track);
-      if (!nt) return NextResponse.json({ error: "Invalid track" }, { status: 400 });
-      query = query.eq("track", nt);
+    if (programId) {
+      const pid = normalizeUuid(programId);
+      if (!pid) return NextResponse.json({ error: "Invalid programId" }, { status: 400 });
+      query = query.eq("program_id", pid);
     }
 
     const { data, error } = await query;
@@ -125,16 +125,16 @@ export async function POST(req: Request) {
     const body = await req.json().catch(() => ({} as any));
 
     const wodDate = normalizeDate(body.wodDate || body.wod_date);
-    const track = normalizeTrack(body.track);
+    const programId = normalizeUuid(body.programId || body.program_id);
     const title = String(body.title || "").trim() || null;
     const workout = String(body.workout || "").trim();
     const coachNotes = String(body.coachNotes || body.coach_notes || "").trim() || null;
+
     const typeRaw = String(body.type || "").trim().toLowerCase();
     const isPublished = !!body.isPublished || !!body.is_published;
-    const type = normalizeType(body.type);
 
     if (!wodDate) return NextResponse.json({ error: "wodDate is required (YYYY-MM-DD)" }, { status: 400 });
-    if (!track) return NextResponse.json({ error: "track is required" }, { status: 400 });
+    if (!programId) return NextResponse.json({ error: "programId is required" }, { status: 400 });
     if (!workout) return NextResponse.json({ error: "workout is required" }, { status: 400 });
 
     const allowedTypes = new Set(["", "metcon", "strength", "skill", "hero", "benchmark"]);
@@ -142,17 +142,24 @@ export async function POST(req: Request) {
 
     const admin = createAdminClient();
 
+    // validar que el program exista
+    const { data: prog, error: progErr } = await admin.from("programs").select("id").eq("id", programId).single();
+    if (progErr) return NextResponse.json({ error: progErr.message }, { status: 400 });
+    if (!prog) return NextResponse.json({ error: "Invalid programId" }, { status: 400 });
+
     const { data, error } = await admin
       .from("wods")
       .insert({
         wod_date: wodDate,
-        track,
+        program_id: programId,
         title,
         type: typeRaw || null,
         workout,
         coach_notes: coachNotes,
         is_published: isPublished,
         created_by: auth.userId,
+        // legacy: dejamos track vacío para nuevos
+        track: String(programId), // clave técnica para uniqueness por program
       })
       .select("id")
       .single();
@@ -181,15 +188,23 @@ export async function PATCH(req: Request) {
       patch.wod_date = nd;
     }
 
-    if (body.track !== undefined) {
-      const nt = normalizeTrack(body.track);
-      if (!nt) return NextResponse.json({ error: "Invalid track" }, { status: 400 });
-      patch.track = nt;
+    if (body.programId !== undefined || body.program_id !== undefined) {
+      const pid = normalizeUuid(body.programId ?? body.program_id);
+      if (!pid) return NextResponse.json({ error: "Invalid programId" }, { status: 400 });
+
+      const admin = createAdminClient();
+      const { data: prog, error: progErr } = await admin.from("programs").select("id").eq("id", pid).single();
+      if (progErr) return NextResponse.json({ error: progErr.message }, { status: 400 });
+      if (!prog) return NextResponse.json({ error: "Invalid programId" }, { status: 400 });
+
+      patch.program_id = pid;
+      patch.track = String(patch.program_id);
+
     }
 
     if (body.title !== undefined) patch.title = String(body.title || "").trim() || null;
 
-    if (body.type !== undefined) patch.type = normalizeType(body.type);
+    if (body.type !== undefined) patch.type = normalizeType(body.type) || null;
 
     if (body.workout !== undefined) {
       const w = String(body.workout || "").trim();

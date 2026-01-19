@@ -48,7 +48,8 @@ export async function GET(req: Request) {
       id: String(c.id),
       wodId: String(c.wod_id),
       userId: String(c.user_id),
-      author: namesById[String(c.user_id)] || "User",
+      author: { name: (namesById[String(c.user_id)] || "User") },
+      message: String(c.body || ""),
       body: String(c.body || ""),
       createdAt: String(c.created_at || ""),
     }));
@@ -93,7 +94,7 @@ export async function POST(req: Request) {
 
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
-    return NextResponse.json({ ok: true, id: String((data as any)?.id || "") });
+    return NextResponse.json({ ok: true, id: String((data as any)?.id || ""), comment: { id: String((data as any)?.id || ""), wodId, userId: user.id, author: { name: "You" }, message: text, body: text, createdAt: new Date().toISOString() } });
   } catch (e: any) {
     return NextResponse.json({ error: e?.message || "Server error" }, { status: 500 });
   }

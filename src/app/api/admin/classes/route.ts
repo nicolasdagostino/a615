@@ -2,43 +2,13 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-type ClassDbRow = {
-  id: string;
-  name: string;
-  coach: string;
-  type: string;
-  day: string;
-  time: string;
-  duration_min: number;
-  capacity: number;
-  status: string;
-  notes: string | null;
-};
-
 function toTitle(s: string) {
-  const v = (s || "").trim();
+  const v = String(s || "").trim();
   return v ? v.charAt(0).toUpperCase() + v.slice(1) : "";
 }
 
-function mapCoachToUi(v: string): string {
-  const s = (v || "").trim().toLowerCase();
-  if (s === "nico") return "Nico";
-  if (s === "laura") return "Laura";
-  if (s === "pablo") return "Pablo";
-  return toTitle(s);
-}
-
-function mapTypeToUi(v: string): "CrossFit" | "Open Box" | "Weightlifting" | "Gymnastics" | string {
-  const s = (v || "").trim().toLowerCase();
-  if (s === "crossfit") return "CrossFit";
-  if (s === "open-box") return "Open Box";
-  if (s === "weightlifting") return "Weightlifting";
-  if (s === "gymnastics") return "Gymnastics";
-  return toTitle(s);
-}
-
 function mapDayToUi(v: string): string {
-  const s = (v || "").trim().toLowerCase();
+  const s = String(v || "").trim().toLowerCase();
   if (s === "mon") return "Mon";
   if (s === "tue") return "Tue";
   if (s === "wed") return "Wed";
@@ -49,10 +19,8 @@ function mapDayToUi(v: string): string {
   return toTitle(s);
 }
 
-function mapStatusToUi(v: string): "Scheduled" | "Full" | "Cancelled" {
-  const s = (v || "").trim().toLowerCase();
-  if (s === "scheduled") return "Scheduled";
-  if (s === "full") return "Full";
+function mapStatusToUi(v: string): "Scheduled" | "Cancelled" {
+  const s = String(v || "").trim().toLowerCase();
   if (s === "cancelled") return "Cancelled";
   return "Scheduled";
 }
@@ -67,7 +35,7 @@ async function assertAdmin() {
   }
 
   const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
-  if ((profile as any)?.role !== "admin") {
+  if (String((profile as any)?.role || "").toLowerCase() !== "admin") {
     return { ok: false as const, res: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
   }
 
@@ -88,89 +56,90 @@ export async function GET(req: Request) {
     const url = new URL(req.url);
     const idParam = String(url.searchParams.get("id") || "").trim();
 
+    // DETAIL
     if (idParam) {
       const { data: one, error: oneErr } = await admin
         .from("classes")
-        .select("id, name, coach_id, coach_id: coachId, type, day, time, duration_min, capacity, status, notes")
+        .select("id, program_id, coach_id, day, time, duration_min, capacity, status")
+        .neq("status", "cancelled")
         .eq("id", idParam)
         .single();
 
       if (oneErr) return NextResponse.json({ error: oneErr.message }, { status: 400 });
       if (!one) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-      const c = one as any as ClassDbRow;
+      const programId = String((one as any).program_id || "");
+      const coachId = String((one as any).coach_id || "");
 
-      // Resolve coach full name (profiles) for detail
-      let coachName = "";
-      const cid = String((c as any).coach_id || "").trim();
-      if (cid) {
-        const { data: prof } = await admin.from("profiles").select("full_name, email").eq("id", cid).single();
-        coachName = String((prof as any)?.full_name || (prof as any)?.email || "").trim();
+      let programName = "";
+      if (programId) {
+        const { data: p } = await admin.from("programs").select("name").eq("id", programId).single();
+        programName = String((p as any)?.name || "").trim();
       }
 
+      let coachName = "";
+      if (coachId) {
+        const { data: prof } = await admin.from("profiles").select("full_name, email").eq("id", coachId).single();
+        coachName = String((prof as any)?.full_name || (prof as any)?.email || "").trim();
+      }
 
       return NextResponse.json({
         ok: true,
         class: {
-          id: String(c.id),
-          name: String(c.name || ""),
-          coachId: String((c as any).coach_id || ""),
+          id: String((one as any).id),
+          programId,
+          program: programName || "—",
+          coachId,
           coach: coachName || "—",
-          type: String(c.type || ""),
-          day: String(c.day || ""),
-          time: String(c.time || ""),
-          durationMin: c.duration_min === null || c.duration_min === undefined ? "" : String(c.duration_min),
-          capacity: c.capacity === null || c.capacity === undefined ? "" : String(c.capacity),
-          status: String(c.status || ""),
-          notes: (c.notes || "") as string,
+          day: String((one as any).day || ""),
+          time: String((one as any).time || ""),
+          durationMin: (one as any).duration_min === null || (one as any).duration_min === undefined ? "" : String((one as any).duration_min),
+          capacity: (one as any).capacity === null || (one as any).capacity === undefined ? "" : String((one as any).capacity),
+          status: String((one as any).status || "scheduled"),
         },
       });
     }
 
+    // LIST
     const { data, error } = await admin
       .from("classes")
-      .select("id, name, coach_id, coach_id: coachId, type, day, time, duration_min, capacity, status, notes")
+      .select("id, program_id, coach_id, day, time, duration_min, capacity, status")
       .order("day", { ascending: true })
       .order("time", { ascending: true });
 
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
-    // Resolve coach full names (profiles) for list view
-    const coachIds = Array.from(
-      new Set((data || []).map((r: any) => String((r as any).coach_id || "")).filter(Boolean))
-    );
+    const programIds = Array.from(new Set((data || []).map((r: any) => String(r.program_id || "")).filter(Boolean)));
+    const coachIds = Array.from(new Set((data || []).map((r: any) => String(r.coach_id || "")).filter(Boolean)));
+
+    let programNameById: Record<string, string> = {};
+    if (programIds.length) {
+      const { data: progs, error: prErr } = await admin.from("programs").select("id, name").in("id", programIds);
+      if (prErr) return NextResponse.json({ error: prErr.message }, { status: 400 });
+      programNameById = Object.fromEntries((progs || []).map((p: any) => [String(p.id), String(p.name || "Program").trim()]));
+    }
 
     let coachNameById: Record<string, string> = {};
     if (coachIds.length) {
-      const { data: profs, error: pErr } = await admin
-        .from("profiles")
-        .select("id, full_name, email")
-        .in("id", coachIds);
-
+      const { data: profs, error: pErr } = await admin.from("profiles").select("id, full_name, email").in("id", coachIds);
       if (pErr) return NextResponse.json({ error: pErr.message }, { status: 400 });
-
-      coachNameById = Object.fromEntries(
-        (profs || []).map((p: any) => [
-          String(p.id),
-          String(p.full_name || p.email || "Coach").trim(),
-        ])
-      );
+      coachNameById = Object.fromEntries((profs || []).map((p: any) => [String(p.id), String(p.full_name || p.email || "Coach").trim()]));
     }
 
-
     const rows = (data || []).map((r: any) => {
-      const c = r as ClassDbRow;
+      const programId = String(r.program_id || "");
+      const coachId = String(r.coach_id || "");
       return {
-        id: String(c.id),
-        name: String(c.name || ""),
-        coachId: String((c as any).coach_id || ""),
-          coach: coachNameById[String((c as any).coach_id || "")] || "—",
-        day: mapDayToUi(String(c.day || "")),
-        time: String(c.time || ""),
-        durationMin: Number(c.duration_min ?? 0),
-        capacity: Number(c.capacity ?? 0),
-        type: mapTypeToUi(String(c.type || "")),
-        status: mapStatusToUi(String(c.status || "")),
+        id: String(r.id),
+        programId,
+        program: programNameById[programId] || "—",
+        coachId,
+        coach: coachNameById[coachId] || "—",
+        day: mapDayToUi(String(r.day || "")),
+        time: String(r.time || ""),
+        durationMin: Number(r.duration_min ?? 0),
+        capacity: Number(r.capacity ?? 0),
+        status: mapStatusToUi(String(r.status || "")),
       };
     });
 
@@ -182,7 +151,7 @@ export async function GET(req: Request) {
 
 /**
  * POST /api/admin/classes
- * body: { name, coach_id: coachId, type, day, time, durationMin, capacity, status, notes }
+ * body: { programId, coachId, day, time, durationMin, capacity, status }
  */
 export async function POST(req: Request) {
   try {
@@ -191,48 +160,49 @@ export async function POST(req: Request) {
 
     const body = await req.json().catch(() => ({} as any));
 
-    const name = String(body.name || "").trim();
+    const programId = String(body.programId || "").trim();
     const coachId = String(body.coachId || "").trim();
-    const type = String(body.type || "").trim().toLowerCase();
     const day = String(body.day || "").trim().toLowerCase();
     const time = String(body.time || "").trim();
-    const status = String(body.status || "").trim().toLowerCase();
-    const notes = String(body.notes || "").trim() || null;
+    const status = String(body.status || "scheduled").trim().toLowerCase();
 
     const durationRaw = String(body.durationMin || "").trim();
     const capacityRaw = String(body.capacity || "").trim();
     const durationMin = durationRaw ? Number(durationRaw) : 0;
     const capacity = capacityRaw ? Number(capacityRaw) : 0;
 
-    if (!name) return NextResponse.json({ error: "name is required" }, { status: 400 });
+    if (!programId) return NextResponse.json({ error: "programId is required" }, { status: 400 });
     if (!coachId) return NextResponse.json({ error: "coachId is required" }, { status: 400 });
-    if (!type) return NextResponse.json({ error: "type is required" }, { status: 400 });
     if (!day) return NextResponse.json({ error: "day is required" }, { status: 400 });
     if (!time) return NextResponse.json({ error: "time is required" }, { status: 400 });
-    if (!status) return NextResponse.json({ error: "status is required" }, { status: 400 });
 
     if (Number.isNaN(durationMin) || durationMin <= 0) return NextResponse.json({ error: "Invalid durationMin" }, { status: 400 });
     if (Number.isNaN(capacity) || capacity <= 0) return NextResponse.json({ error: "Invalid capacity" }, { status: 400 });
 
     const admin = createAdminClient();
+
+    // validate FKs quickly
+    const { data: prog } = await admin.from("programs").select("id").eq("id", programId).single();
+    if (!prog) return NextResponse.json({ error: "Invalid programId" }, { status: 400 });
+
+    const { data: prof } = await admin.from("profiles").select("id").eq("id", coachId).single();
+    if (!prof) return NextResponse.json({ error: "Invalid coachId" }, { status: 400 });
+
     const { data, error } = await admin
       .from("classes")
       .insert({
-        name,
+        program_id: programId,
         coach_id: coachId,
-        type,
         day,
         time,
         duration_min: durationMin,
         capacity,
         status,
-        notes,
       })
       .select("id")
       .single();
 
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-
     return NextResponse.json({ ok: true, id: String((data as any)?.id || "") });
   } catch (e: any) {
     return NextResponse.json({ error: e?.message || "Server error" }, { status: 500 });
@@ -241,7 +211,7 @@ export async function POST(req: Request) {
 
 /**
  * PATCH /api/admin/classes
- * body: { id, name, coach_id: coachId, type, day, time, durationMin, capacity, status, notes }
+ * body: { id, programId, coachId, day, time, durationMin, capacity, status }
  */
 export async function PATCH(req: Request) {
   try {
@@ -252,48 +222,42 @@ export async function PATCH(req: Request) {
     const id = String(body.id || "").trim();
     if (!id) return NextResponse.json({ error: "id is required" }, { status: 400 });
 
-    const name = String(body.name || "").trim();
+    const programId = String(body.programId || "").trim();
     const coachId = String(body.coachId || "").trim();
-    const type = String(body.type || "").trim().toLowerCase();
     const day = String(body.day || "").trim().toLowerCase();
     const time = String(body.time || "").trim();
-    const status = String(body.status || "").trim().toLowerCase();
-    const notes = String(body.notes || "").trim() || null;
+    const status = String(body.status || "scheduled").trim().toLowerCase();
 
     const durationRaw = String(body.durationMin || "").trim();
     const capacityRaw = String(body.capacity || "").trim();
     const durationMin = durationRaw ? Number(durationRaw) : 0;
     const capacity = capacityRaw ? Number(capacityRaw) : 0;
 
-    if (!name) return NextResponse.json({ error: "name is required" }, { status: 400 });
+    if (!programId) return NextResponse.json({ error: "programId is required" }, { status: 400 });
     if (!coachId) return NextResponse.json({ error: "coachId is required" }, { status: 400 });
-    if (!type) return NextResponse.json({ error: "type is required" }, { status: 400 });
     if (!day) return NextResponse.json({ error: "day is required" }, { status: 400 });
     if (!time) return NextResponse.json({ error: "time is required" }, { status: 400 });
-    if (!status) return NextResponse.json({ error: "status is required" }, { status: 400 });
 
     if (Number.isNaN(durationMin) || durationMin <= 0) return NextResponse.json({ error: "Invalid durationMin" }, { status: 400 });
     if (Number.isNaN(capacity) || capacity <= 0) return NextResponse.json({ error: "Invalid capacity" }, { status: 400 });
 
     const admin = createAdminClient();
+
     const { error } = await admin
       .from("classes")
       .update({
-        name,
+        program_id: programId,
         coach_id: coachId,
-        type,
         day,
         time,
         duration_min: durationMin,
         capacity,
         status,
-        notes,
         updated_at: new Date().toISOString(),
       })
       .eq("id", id);
 
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-
     return NextResponse.json({ ok: true });
   } catch (e: any) {
     return NextResponse.json({ error: e?.message || "Server error" }, { status: 500 });
@@ -313,7 +277,19 @@ export async function DELETE(req: Request) {
     if (!id) return NextResponse.json({ error: "id is required" }, { status: 400 });
 
     const admin = createAdminClient();
-    const { error } = await admin.from("classes").delete().eq("id", id);
+      const { error } = await admin
+        .from("classes")
+        .update({ status: "cancelled", updated_at: new Date().toISOString() })
+        .eq("id", id);
+      // Cleanup: borrar sesiones futuras de esta clase (no toca historial)
+      const todayISO = new Date().toISOString().slice(0, 10);
+      const { error: delErr } = await admin
+        .from("class_sessions")
+        .delete()
+        .eq("class_id", id)
+        .gte("session_date", todayISO);
+      if (delErr) return NextResponse.json({ error: delErr.message }, { status: 400 });
+
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
     return NextResponse.json({ ok: true });

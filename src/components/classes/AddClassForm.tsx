@@ -5,20 +5,17 @@ import { useParams, useRouter } from "next/navigation";
 import Label from "@/components/form/Label";
 import Input from "@/components/form/input/InputField";
 import Select from "@/components/form/Select";
-import TextArea from "@/components/form/input/TextArea";
 import Button from "@/components/ui/button/Button";
 
 export type ClassFormDefaults = {
-    id?: string;
-  name?: string;
-  coach?: string;
-  type?: string; // crossfit | open-box | weightlifting | gymnastics
+  id?: string;
+  programId?: string;
+  coachId?: string;
   day?: string;  // mon..sun
   time?: string; // HH:MM
   durationMin?: string; // "60"
   capacity?: string;    // "12"
-  status?: string;      // scheduled | full | cancelled
-  notes?: string;
+  status?: string;      // scheduled | cancelled
 };
 
 type Props = {
@@ -28,16 +25,14 @@ type Props = {
 
 function normalizeDefaults(d?: ClassFormDefaults): Required<ClassFormDefaults> {
   return {
-      id: d?.id ?? "",
-    name: d?.name ?? "",
-    coach: d?.coach ?? "",
-    type: d?.type ?? "",
+    id: d?.id ?? "",
+    programId: d?.programId ?? "",
+    coachId: d?.coachId ?? "",
     day: d?.day ?? "",
     time: d?.time ?? "",
     durationMin: d?.durationMin ?? "",
     capacity: d?.capacity ?? "",
-    status: d?.status ?? "",
-    notes: d?.notes ?? "",
+    status: d?.status ?? "scheduled",
   };
 }
 
@@ -45,12 +40,10 @@ export default function AddClassForm({
   defaultValues,
   primaryButtonLabel = "Save Class",
 }: Props) {
-  const typeOptions = [
-    { value: "crossfit", label: "CrossFit" },
-    { value: "open-box", label: "Open Box" },
-    { value: "weightlifting", label: "Weightlifting" },
-    { value: "gymnastics", label: "Gymnastics" },
-  ];
+  const router = useRouter();
+  const params = useParams<{ id?: string }>();
+  const classIdFromRoute = String((params as any)?.id || "").trim();
+  const isEdit = Boolean(classIdFromRoute);
 
   const dayOptions = [
     { value: "mon", label: "Mon" },
@@ -62,111 +55,123 @@ export default function AddClassForm({
     { value: "sun", label: "Sun" },
   ];
 
-  const statusOptions = [
-    { value: "scheduled", label: "Scheduled" },
-    { value: "full", label: "Full" },
-    { value: "cancelled", label: "Cancelled" },
-  ];
+  // default values
+  const initial = useMemo(() => normalizeDefaults(defaultValues), [defaultValues]);
+  const [form, setForm] = useState<Required<ClassFormDefaults>>(initial);
+
+  // Multi-day creation (only for NEW)
+  const [selectedDays, setSelectedDays] = useState<string[]>(() => {
+    const d = String(initial.day || "").trim();
+    return d ? [d] : [];
+  });
+
+  // programs dropdown
+  const [programOptions, setProgramOptions] = useState<{ value: string; label: string }[]>([]);
+  // coaches dropdown
   const [coachOptions, setCoachOptions] = useState<{ value: string; label: string }[]>([]);
 
   useEffect(() => {
-    let alive = true;
-
-    async function loadCoaches() {
+    async function loadPrograms() {
       try {
-        const res = await fetch("/api/admin/members", { method: "GET" });
+        const res = await fetch("/api/admin/programs", { method: "GET" });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) return;
 
-        const rows = Array.isArray((data as any)?.members) ? (data as any).members : [];
-        const coaches = rows
-          .filter((m: any) => ["coach","admin"].includes(String(m?.role || "").toLowerCase()))
-          .map((m: any) => {
-            const name = String(m?.user?.name || "").trim();
-            return { value: name, label: name };
-          })
-          .filter((o: any) => o.value);
+        const rows = Array.isArray(data?.programs) ? data.programs : [];
+        const opts = rows
+          .map((p: any) => ({ value: String(p.id || "").trim(), label: String(p.name || "").trim() }))
+          .filter((o: any) => o.value && o.label);
 
-        coaches.sort((a: any, b: any) => String(a.label).localeCompare(String(b.label)));
-
-        if (alive) setCoachOptions(coaches);
-      } catch {
-        // noop
-      }
+        opts.sort((a: any, b: any) => a.label.localeCompare(b.label));
+        setProgramOptions(opts);
+      } catch { }
     }
 
+    async function loadCoaches() {
+      try {
+        const res = await fetch("/api/admin/coaches", { method: "GET" });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) return;
+
+        const rows = Array.isArray(data?.coaches) ? data.coaches : [];
+        // coaches endpoint devuelve {id,label}
+        const opts = rows
+          .map((c: any) => ({ value: String(c.id || "").trim(), label: String(c.label || "").trim() }))
+          .filter((o: any) => o.value && o.label);
+
+        opts.sort((a: any, b: any) => a.label.localeCompare(b.label));
+        setCoachOptions(opts);
+      } catch { }
+    }
+
+    loadPrograms();
     loadCoaches();
-    return () => {
-      alive = false;
-    };
   }, []);
 
+  const resolvedProgramOptions = useMemo(() => {
+    const cur = String(form.programId || "").trim();
+    if (!cur) return programOptions;
+    const exists = programOptions.some((o) => o.value === cur);
+    return exists ? programOptions : [{ value: cur, label: cur }, ...programOptions];
+  }, [programOptions, form.programId]);
 
-  // ✅ IMPORTANT: inicializamos desde defaultValues para que Select tome defaultValue al mount.
-  const initial = useMemo(() => normalizeDefaults(defaultValues), [defaultValues]);
-
-  const [form, setForm] = useState<Required<ClassFormDefaults>>(initial);
 
   const resolvedCoachOptions = useMemo(() => {
-    const cur = String(form.coach || "").trim();
+    const cur = String(form.coachId || "").trim();
     if (!cur) return coachOptions;
     const exists = coachOptions.some((o) => o.value === cur);
     return exists ? coachOptions : [{ value: cur, label: cur }, ...coachOptions];
-  }, [coachOptions, form.coach]);
+  }, [coachOptions, form.coachId]);
 
-
-    const router = useRouter();
-    const params = useParams<{ id?: string }>();
-
-    const classIdFromRoute = String((params as any)?.id || "").trim();
-    const isEdit = Boolean(classIdFromRoute);
-
-    const handleSave = async () => {
-      try {
-        const payload = {
-          id: classIdFromRoute || undefined,
-          name: String(form.name || "").trim(),
-          coach: String(form.coach || "").trim(),
-          type: String(form.type || "").trim(),
-          day: String(form.day || "").trim(),
-          time: String(form.time || "").trim(),
-          durationMin: String(form.durationMin || "").trim(),
-          capacity: String(form.capacity || "").trim(),
-          status: String(form.status || "").trim(),
-          notes: String(form.notes || "").trim(),
-        };
-
-        if (!payload.name || !payload.coach || !payload.type || !payload.day || !payload.time || !payload.status) {
-          return;
-        }
-
-        const res = await fetch("/api/admin/classes", {
-          method: isEdit ? "PATCH" : "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-
-        const json = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(json?.error || "Failed to save");
-
-        router.push("/admin/classes");
-        router.refresh();
-      } catch (e) {}
-    };
-
-    const handleCancel = () => {
-      router.back();
-    };
-
-
-  // Si cambian defaults (raro, pero posible), sincronizamos.
+  // Sync defaults (edit)
   useEffect(() => {
     setForm(normalizeDefaults(defaultValues));
   }, [defaultValues]);
 
+  const handleSave = async () => {
+    try {
+      // status: lo dejamos fijo en scheduled (cancelar se hace después si querés)
+      const payload = {
+        id: classIdFromRoute || undefined,
+        programId: String(form.programId || "").trim(),
+        coachId: String(form.coachId || "").trim(),
+        day: String(form.day || "").trim(),
+        time: String(form.time || "").trim(),
+        durationMin: String(form.durationMin || "").trim(),
+        capacity: String(form.capacity || "").trim(),
+        status: String(form.status || "scheduled").trim(),
+      };
+
+      if (!payload.programId || !payload.coachId || !payload.time || !payload.durationMin || !payload.capacity) return;
+
+      async function postOne(dayValue: string) {
+        const res = await fetch("/api/admin/classes", {
+          method: isEdit ? "PATCH" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...payload, day: dayValue }),
+        });
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(json?.error || "Failed to save");
+      }
+
+      if (!isEdit && selectedDays.length > 0) {
+        for (const d of selectedDays) await postOne(d);
+      } else {
+        await postOne(payload.day);
+      }
+
+      router.push("/admin/classes");
+      router.refresh();
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleCancel = () => router.back();
+
   return (
     <div className="space-y-6">
-      {/* Class Details */}
+      {/* Details */}
       <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
         <div className="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
           <h2 className="text-lg font-medium text-gray-800 dark:text-white">
@@ -175,68 +180,30 @@ export default function AddClassForm({
         </div>
 
         <div className="p-4 sm:p-6 dark:border-gray-800">
-          <form>
-            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-              <div>
-                <Label>Class Name</Label>
-                <Input
-                  placeholder="CrossFit"
-                  value={form.name}
-                  onChange={(e) =>
-                    setForm((p) => ({ ...p, name: e.target.value }))
-                  }
-                />
-              </div>
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+            <div>
+              <Label>Program</Label>
+              <Select
+                key={`program-${resolvedProgramOptions.length}-${form.programId}`}
+                options={resolvedProgramOptions}
+                placeholder="Select program"
+                onChange={(v) => setForm((p) => ({ ...p, programId: String(v) }))}
+                defaultValue={form.programId}
+              />
 
-              <div>
-                <Label>Coach</Label>
-                <Select
-                  key={`coach-${resolvedCoachOptions.length}-${form.coach}`}
-                  options={resolvedCoachOptions}
-                  placeholder="Select coach"
-                  onChange={(value) => setForm((p) => ({ ...p, coach: value }))}
-                  defaultValue={form.coach}
-                />
-              </div>
-
-              <div>
-                <Label>Type</Label>
-                <Select
-                  options={typeOptions}
-                  placeholder="Select type"
-                  onChange={(value) => setForm((p) => ({ ...p, type: value }))}
-                  defaultValue={form.type}
-                />
-              </div>
-
-              <div>
-                <Label>Status</Label>
-                <Select
-                  options={statusOptions}
-                  placeholder="Select status"
-                  onChange={(value) =>
-                    setForm((p) => ({ ...p, status: value }))
-                  }
-                  defaultValue={form.status}
-                />
-              </div>
-
-              <div className="col-span-full">
-                <Label>Notes</Label>
-                <TextArea
-                  rows={6}
-                  placeholder="Notes (optional)"
-                  value={form.notes}
-                  onChange={(v) =>
-                    setForm((p) => ({
-                      ...p,
-                      notes: typeof v === "string" ? v : ((v as any)?.target?.value ?? ""),
-                    }))
-                  }
-                />
-              </div>
             </div>
-          </form>
+
+            <div>
+              <Label>Coach</Label>
+              <Select
+                key={`coach-${resolvedCoachOptions.length}-${form.coachId}`}
+                options={resolvedCoachOptions}
+                placeholder="Select coach"
+                onChange={(value) => setForm((p) => ({ ...p, coachId: String(value) }))}
+                defaultValue={form.coachId}
+              />
+            </div>
+          </div>
         </div>
       </div>
 
@@ -251,13 +218,44 @@ export default function AddClassForm({
         <div className="space-y-5 p-4 sm:p-6">
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-4">
             <div>
-              <Label>Day</Label>
-              <Select
-                options={dayOptions}
-                placeholder="Select day"
-                onChange={(value) => setForm((p) => ({ ...p, day: value }))}
-                defaultValue={form.day}
-              />
+              <Label>Days</Label>
+
+              {isEdit ? (
+                <Select
+                  options={dayOptions}
+                  placeholder="Select day"
+                  onChange={(value) => setForm((p) => ({ ...p, day: String(value) }))}
+                  defaultValue={form.day}
+                />
+              ) : (
+                <div className="mt-2 grid grid-cols-4 gap-2">
+                  {dayOptions.map((d) => {
+                    const checked = selectedDays.includes(d.value);
+                    return (
+                      <label
+                        key={d.value}
+                        className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm ${checked
+                            ? "border-brand-300 bg-brand-50 text-brand-600 dark:border-brand-500/40 dark:bg-brand-500/10 dark:text-brand-300"
+                            : "border-gray-300 text-gray-700 dark:border-gray-700 dark:text-gray-300"
+                          }`}
+                      >
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4"
+                          checked={checked}
+                          onChange={() => {
+                            setSelectedDays((prev) => {
+                              if (prev.includes(d.value)) return prev.filter((x) => x !== d.value);
+                              return [...prev, d.value];
+                            });
+                          }}
+                        />
+                        {d.label}
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             <div>
@@ -265,9 +263,7 @@ export default function AddClassForm({
               <Input
                 type="time"
                 value={form.time}
-                onChange={(e) =>
-                  setForm((p) => ({ ...p, time: e.target.value }))
-                }
+                onChange={(e) => setForm((p) => ({ ...p, time: e.target.value }))}
               />
             </div>
 
@@ -277,9 +273,7 @@ export default function AddClassForm({
                 type="number"
                 placeholder="60"
                 value={form.durationMin}
-                onChange={(e) =>
-                  setForm((p) => ({ ...p, durationMin: e.target.value }))
-                }
+                onChange={(e) => setForm((p) => ({ ...p, durationMin: e.target.value }))}
               />
             </div>
 
@@ -289,9 +283,7 @@ export default function AddClassForm({
                 type="number"
                 placeholder="12"
                 value={form.capacity}
-                onChange={(e) =>
-                  setForm((p) => ({ ...p, capacity: e.target.value }))
-                }
+                onChange={(e) => setForm((p) => ({ ...p, capacity: e.target.value }))}
               />
             </div>
           </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   Table,
@@ -17,25 +17,19 @@ import { useModal } from "@/hooks/useModal";
 type Row = {
   id: string;
   wodDate: string; // YYYY-MM-DD
-  track: string;
-  title: string;
+  programId: string;
+  programName: string;
   isPublished: boolean;
 };
 
-function trackLabel(v: string) {
-  const s = (v || "").toLowerCase();
-  if (s === "crossfit") return "CrossFit";
-  if (s === "functional") return "Functional";
-  if (s === "weightlifting") return "Weightlifting";
-  if (s === "open_gym") return "Open Gym";
-  return v || "—";
+function programLabel(r: Row) {
+  return r.programName || r.programId || "—";
 }
 
 export default function WodTable() {
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // delete modal
   const deleteModal = useModal();
   const [toDelete, setToDelete] = useState<Row | null>(null);
 
@@ -45,20 +39,20 @@ export default function WodTable() {
     async function load() {
       setLoading(true);
       try {
-        const res = await fetch("/api/admin/wods");
+        const res = await fetch("/api/admin/wods", { method: "GET" });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(String((data as any)?.error || "Failed to load wods"));
 
         const list = Array.isArray((data as any)?.wods) ? (data as any).wods : [];
+
         const mapped: Row[] = list.map((w: any) => ({
-          id: String(w.id),
-          wodDate: String(w.wod_date || w.wodDate || w.date || ""),
-          track: String(w.track || ""),
-          title: String(w.title || "—"),
-          isPublished: Boolean(w.is_published ?? w.isPublished),
+          id: String(w.id || ""),
+          wodDate: String(w.wodDate || w.wod_date || w.date || ""),
+          programId: String(w.programId || w.program_id || ""),
+          programName: String(w.programName || (w.programs && w.programs.name) || ""),
+          isPublished: Boolean(w.isPublished ?? w.is_published),
         }));
 
-        // orden: fecha desc
         mapped.sort((a, b) => (a.wodDate < b.wodDate ? 1 : -1));
 
         if (!alive) return;
@@ -124,19 +118,31 @@ export default function WodTable() {
           <Table>
             <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
               <TableRow>
-                <TableCell isHeader className="px-5 py-3 text-start text-theme-xs font-medium text-gray-500 dark:text-gray-400">
+                <TableCell
+                  isHeader
+                  className="px-5 py-3 text-start text-theme-xs font-medium text-gray-500 dark:text-gray-400"
+                >
                   Date
                 </TableCell>
-                <TableCell isHeader className="px-5 py-3 text-start text-theme-xs font-medium text-gray-500 dark:text-gray-400">
-                  Track
+
+                <TableCell
+                  isHeader
+                  className="px-5 py-3 text-start text-theme-xs font-medium text-gray-500 dark:text-gray-400"
+                >
+                  Program
                 </TableCell>
-                <TableCell isHeader className="px-5 py-3 text-start text-theme-xs font-medium text-gray-500 dark:text-gray-400">
-                  Title
-                </TableCell>
-                <TableCell isHeader className="px-5 py-3 text-start text-theme-xs font-medium text-gray-500 dark:text-gray-400">
+
+                <TableCell
+                  isHeader
+                  className="px-5 py-3 text-start text-theme-xs font-medium text-gray-500 dark:text-gray-400"
+                >
                   Status
                 </TableCell>
-                <TableCell isHeader className="px-5 py-3 text-start text-theme-xs font-medium text-gray-500 dark:text-gray-400">
+
+                <TableCell
+                  isHeader
+                  className="px-5 py-3 text-start text-theme-xs font-medium text-gray-500 dark:text-gray-400"
+                >
                   Action
                 </TableCell>
               </TableRow>
@@ -145,13 +151,13 @@ export default function WodTable() {
             <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
               {loading ? (
                 <TableRow>
-                  <TableCell className="px-5 py-6 text-sm text-gray-500 dark:text-gray-400" colSpan={5}>
+                  <TableCell className="px-5 py-6 text-sm text-gray-500 dark:text-gray-400" colSpan={4}>
                     Loading…
                   </TableCell>
                 </TableRow>
               ) : empty ? (
                 <TableRow>
-                  <TableCell className="px-5 py-6 text-sm text-gray-500 dark:text-gray-400" colSpan={5}>
+                  <TableCell className="px-5 py-6 text-sm text-gray-500 dark:text-gray-400" colSpan={4}>
                     No Workouts (WOD) yet.
                   </TableCell>
                 </TableRow>
@@ -161,17 +167,17 @@ export default function WodTable() {
                     <TableCell className="px-5 py-4 text-theme-sm text-gray-800 dark:text-white/90 whitespace-nowrap">
                       {r.wodDate}
                     </TableCell>
+
                     <TableCell className="px-5 py-4 text-theme-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                      {trackLabel(r.track)}
+                      {programLabel(r)}
                     </TableCell>
-                    <TableCell className="px-5 py-4 text-theme-sm text-gray-800 dark:text-white/90">
-                      {r.title || "—"}
-                    </TableCell>
+
                     <TableCell className="px-5 py-4 text-theme-sm whitespace-nowrap">
                       <Badge size="sm" color={r.isPublished ? "success" : "warning"}>
                         {r.isPublished ? "Published" : "Draft"}
                       </Badge>
                     </TableCell>
+
                     <TableCell className="px-5 py-4 text-theme-sm whitespace-nowrap">
                       <div className="flex items-center gap-3">
                         <Link
@@ -180,6 +186,7 @@ export default function WodTable() {
                         >
                           <PencilIcon />
                         </Link>
+
                         <button
                           type="button"
                           onClick={() => openDelete(r)}
@@ -209,8 +216,11 @@ export default function WodTable() {
           <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
             Delete WOD?
           </h4>
+
           <p className="text-sm leading-6 text-gray-500 dark:text-gray-400">
-            {toDelete ? `Are you sure you want to delete "${toDelete.title}"?` : "Are you sure?"}
+            {toDelete
+              ? `Are you sure you want to delete this WOD (${toDelete.wodDate})?`
+              : "Are you sure?"}
           </p>
 
           <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">

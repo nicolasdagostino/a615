@@ -19,7 +19,7 @@ import { useModal } from "@/hooks/useModal";
 
 type ClassRow = {
   id: string;
-  name: string;
+  program: string;
   coach: string;
   day: string;      // "Mon", "Tue"...
   time: string;     // "18:00"
@@ -64,7 +64,7 @@ export default function ClassesTable() {
   const q = query.trim().toLowerCase();
   if (!q) return rows;
   return rows.filter((r) => {
-    const hay = `${r.name} ${r.coach} ${r.day} ${r.time} ${r.type} ${r.status}`.toLowerCase();
+    const hay = `${r.program} ${r.coach} ${r.day} ${r.time} ${r.type} ${r.status}`.toLowerCase();
     return hay.includes(q);
   });
 }, [rows, query]);
@@ -211,7 +211,7 @@ export default function ClassesTable() {
                         </div>
                         <div>
                           <p className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
-                            {item.name}
+                            {item.program}
                           </p>
                           <span className="text-sm font-normal text-gray-500 dark:text-gray-400">
                             Coach: {item.coach}
@@ -316,7 +316,7 @@ export default function ClassesTable() {
           </h4>
           <p className="text-sm leading-6 text-gray-500 dark:text-gray-400">
             {rowToDelete
-              ? `Are you sure you want to delete ${rowToDelete.name} (${rowToDelete.day} ${rowToDelete.time})?`
+              ? `Are you sure you want to delete ${rowToDelete.program} (${rowToDelete.day} ${rowToDelete.time})?`
               : "Are you sure you want to delete this class?"}
           </p>
 

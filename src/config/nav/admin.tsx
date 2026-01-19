@@ -14,6 +14,7 @@ export const adminNav: NavItem[] = [
   { name: "Asistencia", icon: <TaskIcon />, path: "/admin/attendance" },
 
   { name: "Sesiones", icon: <CalenderIcon />, path: "/admin/sessions" },
+  { name: "Programs", icon: <CalenderIcon />, path: "/admin/programs" },
   { name: "Miembros", icon: <UserCircleIcon />, path: "/admin/members" },
 
   // Admin management

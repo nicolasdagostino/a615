@@ -129,9 +129,9 @@ export default function AthleteClasses() {
   // Hoy (Madrid)
   const [todayISO, setTodayISO] = useState<string>(() => isoTodayMadrid());
 
-  // Week vigente
-  const [weekStartISO, setWeekStartISO] = useState<string>(() => weekStartMondayISO(isoTodayMadrid()));
-  const weekDays = useMemo(() => Array.from({ length: 7 }, (_, i) => addDaysISO(weekStartISO, i)), [weekStartISO]);
+  // Rango vigente (hoy + 6)
+  const [startISO, setStartISO] = useState<string>(() => isoTodayMadrid());
+  const weekDays = useMemo(() => Array.from({ length: 7 }, (_, i) => addDaysISO(startISO, i)), [startISO]);
 
   // Tab activo: por defecto hoy
   const [activeDayISO, setActiveDayISO] = useState<string>(() => isoTodayMadrid());
@@ -205,11 +205,10 @@ export default function AthleteClasses() {
     const t = isoTodayMadrid();
     setTodayISO(t);
 
-    const monday = weekStartMondayISO(t);
-    setWeekStartISO(monday);
+    setStartISO(t);
 
     setActiveDayISO(t);
-    loadWeek(monday);
+    loadWeek(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -280,7 +279,7 @@ export default function AthleteClasses() {
       }
       reserveModal.closeModal();
       setTarget(null);
-      await loadWeek(weekStartISO);
+      await loadWeek(startISO);
     } catch (e) {
       console.error(e);
       setErrorMsg("Could not reserve");
@@ -303,7 +302,7 @@ export default function AthleteClasses() {
       }
       cancelModal.closeModal();
       setTarget(null);
-      await loadWeek(weekStartISO);
+      await loadWeek(startISO);
     } catch (e) {
       console.error(e);
       setErrorMsg("Could not cancel");
@@ -408,7 +407,7 @@ export default function AthleteClasses() {
                 <div className="group relative inline-block">
   <button
     type="button"
-    onClick={() => loadWeek(weekStartISO)}
+    onClick={() => loadWeek(startISO)}
     disabled={loadingWeek}
     aria-label="Reload"
     className={`shadow-theme-xs inline-flex h-11 w-11 items-center justify-center rounded-lg border border-gray-300 text-gray-700 dark:border-gray-700 dark:text-gray-400 ${

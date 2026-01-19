@@ -41,16 +41,15 @@ export default async function EditClassPage({
             primaryButtonLabel="Update Class"
             defaultValues={{
               id: String(cls?.id || id),
-              name: String(cls?.name || ""),
-              coach: String(cls?.coach || ""),
-              type: String(cls?.type || ""),
-              status: String(cls?.status || ""),
+              programId: String((cls as any)?.programId || (cls as any)?.program_id || ""),
+              coachId: String((cls as any)?.coachId || (cls as any)?.coach_id || ""),
               day: String(cls?.day || ""),
               time: String(cls?.time || ""),
-              durationMin: String(cls?.durationMin || ""),
-              capacity: String(cls?.capacity || ""),
-              notes: String(cls?.notes || ""),
+              durationMin: String((cls as any)?.durationMin ?? ""),
+              capacity: String((cls as any)?.capacity ?? ""),
+              status: String(cls?.status || "scheduled"),
             }}
+            
           />
         </ComponentCard>
       </div>

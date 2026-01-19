@@ -25,6 +25,10 @@ type AttendanceStatus = "present" | "absent" | null;
 /**
  * GET /api/athlete/sessions?date=YYYY-MM-DD&days=7
  * Response: sesiones con reservedCount + reservedByMe + myReservationStatus + attendanceStatus
+ *
+ * IMPORTANTE:
+ * - NO usa joins (schema cache) entre classes/coaches/programs.
+ * - Resuelve programName y coachName por queries separadas (robusto).
  */
 export async function GET(req: Request) {
   try {
@@ -48,22 +52,18 @@ export async function GET(req: Request) {
     const dateTo = addDaysISO(baseDate, days); // exclusive
     const admin = createAdminClient();
 
-    // 1) Sesiones + clase base
+      // Auto-seed SOLO para admin/coach (evita olvidos)
+      const { data: prof } = await supabase.from("profiles").select("role").eq("id", user.id).single();
+      const role = String((prof as any)?.role || "").toLowerCase();
+      if (role === "admin" || role === "coach") {
+        await ensureSessionsForRange(admin, baseDate, days);
+      }
+
+
+    // 1) Sessions (sin join a classes)
     const { data: sessions, error: sErr } = await admin
       .from("class_sessions")
-      .select(`
-        id,
-        class_id,
-        session_date,
-        start_time,
-        duration_min,
-        capacity,
-        status,
-        notes,
-        classes:classes (
-          id, name, coach, type
-        )
-      `)
+      .select("id, class_id, session_date, start_time, duration_min, capacity, status, notes")
       .gte("session_date", baseDate)
       .lt("session_date", dateTo)
       .order("session_date", { ascending: true })
@@ -71,25 +71,67 @@ export async function GET(req: Request) {
 
     if (sErr) return NextResponse.json({ error: sErr.message }, { status: 400 });
 
-    const ids = (sessions || []).map((x: any) => String(x.id));
+    const sessionIds = (sessions || []).map((x: any) => String(x.id));
+    const classIds = Array.from(new Set((sessions || []).map((x: any) => String(x.class_id || "")).filter(Boolean)));
 
-    // 2) reservedCount por sesión
+    // 2) Classes -> program_id + coach_id (sin join)
+    let classById: Record<string, { id: string; programId: string; coachId: string }> = {};
+    if (classIds.length) {
+      const { data: cls, error: cErr } = await admin
+        .from("classes")
+        .select("id, program_id, coach_id")
+        .in("id", classIds);
+
+      if (cErr) return NextResponse.json({ error: cErr.message }, { status: 400 });
+
+      classById = Object.fromEntries(
+        (cls || []).map((c: any) => [
+          String(c.id),
+          {
+            id: String(c.id),
+            programId: String(c.program_id || ""),
+            coachId: String(c.coach_id || ""),
+          },
+        ])
+      );
+    }
+
+    const programIds = Array.from(new Set(Object.values(classById).map((c) => c.programId).filter(Boolean)));
+    const coachIds = Array.from(new Set(Object.values(classById).map((c) => c.coachId).filter(Boolean)));
+
+    // 3) Programs -> name
+    let programNameById: Record<string, string> = {};
+    if (programIds.length) {
+      const { data: progs, error: pErr } = await admin.from("programs").select("id, name").in("id", programIds);
+      if (pErr) return NextResponse.json({ error: pErr.message }, { status: 400 });
+      programNameById = Object.fromEntries((progs || []).map((p: any) => [String(p.id), String(p.name || "Program").trim()]));
+    }
+
+    // 4) Coaches (profiles) -> full_name/email
+    let coachNameById: Record<string, string> = {};
+    if (coachIds.length) {
+      const { data: profs, error: prErr } = await admin.from("profiles").select("id, full_name, email").in("id", coachIds);
+      if (prErr) return NextResponse.json({ error: prErr.message }, { status: 400 });
+      coachNameById = Object.fromEntries(
+        (profs || []).map((p: any) => [String(p.id), String(p.full_name || p.email || "Coach").trim()])
+      );
+    }
+
+    // 5) reservedCount por sesión
     const { data: counts } = await admin
       .from("v_session_reserved_counts")
       .select("session_id, reserved_count")
-      .in("session_id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]);
+      .in("session_id", sessionIds.length ? sessionIds : ["00000000-0000-0000-0000-000000000000"]);
 
     const countMap = new Map<string, number>();
-    (counts || []).forEach((r: any) =>
-      countMap.set(String(r.session_id), Number(r.reserved_count || 0))
-    );
+    (counts || []).forEach((r: any) => countMap.set(String(r.session_id), Number(r.reserved_count || 0)));
 
-    // 3) Mis reservas (activa o cancelada) para setear flags y permitir historial
+    // 6) Mis reservas (activa o cancelada)
     const { data: myRes, error: myErr } = await admin
       .from("reservations")
       .select("session_id, cancelled_at")
       .eq("user_id", user.id)
-      .in("session_id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]);
+      .in("session_id", sessionIds.length ? sessionIds : ["00000000-0000-0000-0000-000000000000"]);
 
     if (myErr) return NextResponse.json({ error: myErr.message }, { status: 400 });
 
@@ -99,12 +141,12 @@ export async function GET(req: Request) {
       myMap.set(sid, r.cancelled_at ? "cancelled" : "active");
     });
 
-    // 4) Attendance del usuario para esas sesiones (si existe)
+    // 7) Attendance del usuario (si existe)
     const { data: attRows, error: aErr } = await admin
       .from("attendance")
       .select("session_id, status")
       .eq("user_id", user.id)
-      .in("session_id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]);
+      .in("session_id", sessionIds.length ? sessionIds : ["00000000-0000-0000-0000-000000000000"]);
 
     if (aErr) return NextResponse.json({ error: aErr.message }, { status: 400 });
 
@@ -115,31 +157,48 @@ export async function GET(req: Request) {
       attMap.set(sid, st === "present" ? "present" : st === "absent" ? "absent" : null);
     });
 
+    // 8) Output (incluye programId/programName para que el WOD Feed pueda “detectar” activos)
     const out = (sessions || []).map((s: any) => {
       const sid = String(s.id);
       const reservedCount = countMap.get(sid) ?? 0;
       const myReservationStatus = myMap.get(sid) ?? null;
       const attendanceStatus = attMap.get(sid) ?? null;
 
+      const cls = classById[String(s.class_id)] || { id: String(s.class_id || ""), programId: "", coachId: "" };
+      const programId = String(cls.programId || "");
+      const programName = String(programNameById[programId] || "").trim();
+      const coachId = String(cls.coachId || "");
+      const coachName = String(coachNameById[coachId] || "").trim();
+
       return {
         id: sid,
         date: String(s.session_date),
-        time: String(s.start_time).slice(0, 5),
+        time: String(s.start_time || "").slice(0, 5),
         durationMin: Number(s.duration_min ?? 60),
         capacity: Number(s.capacity ?? 12),
         reservedCount,
         remaining: Math.max(0, Number(s.capacity ?? 0) - reservedCount),
         status: String(s.status || "scheduled"),
         notes: s.notes ?? null,
+
+        // útiles para UI y para detectar programas activos
+        programId,
+        programName: programName || "—",
+        coachId,
+        coachName: coachName || "—",
+
+        // compat con tu UI actual (ribbonLabel usa class.name o class.type)
         class: {
-          id: String(s.classes?.id || s.class_id),
-          name: String(s.classes?.name || ""),
-          coach: String(s.classes?.coach || ""),
-          type: String(s.classes?.type || ""),
+          id: String(cls.id || s.class_id || ""),
+          name: programName || "—",
+          coach: coachName || "—",
+          type: "",
+          programId,
         },
+
         reservedByMe: myReservationStatus === "active",
-        myReservationStatus,        // "active" | "cancelled" | null
-        attendanceStatus,           // "present" | "absent" | null
+        myReservationStatus, // "active" | "cancelled" | null
+        attendanceStatus,    // "present" | "absent" | null
       };
     });
 
@@ -147,4 +206,72 @@ export async function GET(req: Request) {
   } catch (e: any) {
     return NextResponse.json({ error: e?.message || "Server error" }, { status: 500 });
   }
+}
+
+// ---- Auto-seed helpers (admin/coach only) ----
+function toDayCode(d: Date): string {
+  // JS: 0=Sun..6=Sat
+  const n = d.getUTCDay();
+  if (n === 0) return "sun";
+  if (n === 1) return "mon";
+  if (n === 2) return "tue";
+  if (n === 3) return "wed";
+  if (n === 4) return "thu";
+  if (n === 5) return "fri";
+  return "sat";
+}
+
+type SeedClassRow = {
+  id: string;
+  day: string; // mon..sun
+  time: string; // HH:MM
+  duration_min: number;
+  capacity: number;
+  status: string;
+};
+
+async function ensureSessionsForRange(admin: any, startISO: string, days: number) {
+  const { data: classes, error: cErr } = await admin
+    .from("classes")
+    .select("id, day, time, duration_min, capacity, status")
+    .neq("status", "cancelled")
+    .order("day", { ascending: true })
+    .order("time", { ascending: true });
+
+  if (cErr) throw new Error(cErr.message);
+
+  const rows = (classes || []) as SeedClassRow[];
+  if (!rows.length) return;
+
+  const inserts: any[] = [];
+
+  for (let i = 0; i < days; i++) {
+    const dateISO = addDaysISO(startISO, i);
+    const d = new Date(`${dateISO}T00:00:00.000Z`);
+    const dayCode = toDayCode(d);
+
+    const forDay = rows.filter((c) => String(c.day || "").trim().toLowerCase() === dayCode);
+
+    for (const c of forDay) {
+      const t = String(c.time || "").trim();
+      const startTime = t.length === 5 ? `${t}:00` : t;
+
+      inserts.push({
+        class_id: c.id,
+        session_date: dateISO,
+        start_time: startTime,
+        duration_min: Number((c as any).duration_min ?? 60),
+        capacity: Number((c as any).capacity ?? 12),
+        status: String((c as any).status || "scheduled"),
+      });
+    }
+  }
+
+  if (!inserts.length) return;
+
+  const { error: upErr } = await admin
+    .from("class_sessions")
+    .upsert(inserts, { onConflict: "class_id,session_date,start_time" });
+
+  if (upErr) throw new Error(upErr.message);
 }

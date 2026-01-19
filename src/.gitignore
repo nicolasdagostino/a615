@@ -1,0 +1,24 @@
+
+# local logs/backups
+logs/
+_bak/
+scripts/
+
+# macOS
+.DS_Store
+
+# accidental nested repos
+src/
+
+# local tooling & outputs
+logs/
+scripts/
+
+# local backups
+_bak/
+*.bak
+*.bak*
+*.bak-*
+
+# accidental duplicate nested src
+src/
