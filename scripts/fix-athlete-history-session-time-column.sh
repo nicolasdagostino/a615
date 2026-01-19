@@ -1,3 +1,33 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ts() { date +"%Y%m%d-%H%M%S"; }
+RUN_ID="$(ts)"
+BK_DIR="logs/backups/$RUN_ID"
+mkdir -p "$BK_DIR"
+
+log() { echo "[$(date +"%H:%M:%S")] $*"; }
+
+CAND1="src/app/api/athlete/history/route.ts"
+CAND2="app/api/athlete/history/route.ts"
+
+if [[ -f "$CAND1" ]]; then
+  ROUTE="$CAND1"
+elif [[ -f "$CAND2" ]]; then
+  ROUTE="$CAND2"
+else
+  echo "ERROR: no encuentro athlete history route en:"
+  echo " - $CAND1"
+  echo " - $CAND2"
+  exit 1
+fi
+
+log "Route detectado: $ROUTE"
+mkdir -p "$BK_DIR/$(dirname "$ROUTE")"
+cp -a "$ROUTE" "$BK_DIR/$ROUTE"
+
+log "Escribiendo route.ts con fallback de columna hora..."
+cat > "$ROUTE" <<'TS'
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -192,3 +222,11 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: e?.message || "Server error" }, { status: 500 });
   }
 }
+TS
+
+perl -pi -e 's/\x00//g' "$ROUTE" || true
+
+log "Build check..."
+npm run build
+
+log "OK. Backup: $BK_DIR"

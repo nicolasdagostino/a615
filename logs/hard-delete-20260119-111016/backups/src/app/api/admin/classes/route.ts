@@ -265,7 +265,7 @@ export async function PATCH(req: Request) {
 
 /**
  * DELETE /api/admin/classes?id=...
- * Hard delete: borra la clase (y sus sesiones futuras) de verdad.
+ * Soft-delete: status=inactive + borra sesiones futuras de esa clase
  */
 export async function DELETE(req: Request) {
   try {
@@ -278,23 +278,24 @@ export async function DELETE(req: Request) {
 
     const admin = createAdminClient();
 
-    // 1) borrar sesiones FUTURAS
+    const { error } = await admin
+      .from("classes")
+      .update({ status: "inactive", updated_at: new Date().toISOString() })
+      .eq("id", id);
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+
     const todayISO = new Date().toISOString().slice(0, 10);
-    const { error: delSessionsErr } = await admin
+    const { error: delErr } = await admin
       .from("class_sessions")
       .delete()
       .eq("class_id", id)
       .gte("session_date", todayISO);
 
-    if (delSessionsErr) return NextResponse.json({ error: delSessionsErr.message }, { status: 400 });
-
-    // 2) borrar la clase
-    const { error: delClassErr } = await admin.from("classes").delete().eq("id", id);
-    if (delClassErr) return NextResponse.json({ error: delClassErr.message }, { status: 400 });
+    if (delErr) return NextResponse.json({ error: delErr.message }, { status: 400 });
 
     return NextResponse.json({ ok: true });
   } catch (e: any) {
     return NextResponse.json({ error: e?.message || "Server error" }, { status: 500 });
   }
 }
-

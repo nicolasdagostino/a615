@@ -75,7 +75,7 @@
           start_time,
           capacity,
           status,
-          classes:classes ( id, program:programs(name), coach_profile:profiles(full_name, email) )
+          classes:classes ( id, name, coach, type )
         `
         )
         .gte("session_date", baseDate)
@@ -150,9 +150,9 @@ reservationId: String(r.id),
           capacity: Number(s.capacity || 0),
           class: {
             id: String(s.classes?.id || ""),
-            name: String((s.classes as any)?.program?.name || ""),
-            coach: String((s.classes as any)?.coach_profile?.full_name || (s.classes as any)?.coach_profile?.email || ""),
-            type: String((s.classes as any)?.program?.name || ""),
+            name: String(s.classes?.name || ""),
+            coach: String(s.classes?.coach || ""),
+            type: String(s.classes?.type || ""),
           },
           attendees,
         };

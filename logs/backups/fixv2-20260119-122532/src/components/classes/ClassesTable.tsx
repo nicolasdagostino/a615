@@ -37,8 +37,6 @@ export default function ClassesTable() {
       const res = await fetch("/api/admin/classes", { method: "GET" });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(json?.error || "Failed to load classes");
-
-        await fetchRows();
       const items = Array.isArray(json?.classes) ? json.classes : [];
       setRows(items);
     } catch {

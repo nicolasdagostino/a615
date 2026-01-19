@@ -1,0 +1,157 @@
+
+> tailadmin-next-typescript-pro@2.2.4 build
+> next build
+
+   ▲ Next.js 16.0.10 (Turbopack)
+   - Environments: .env.local
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 5.5s
+   Running TypeScript ...
+   Collecting page data using 7 workers ...
+   Generating static pages using 7 workers (0/126) ...
+   Generating static pages using 7 workers (31/126) 
+   Generating static pages using 7 workers (62/126) 
+   Generating static pages using 7 workers (94/126) 
+ ✓ Generating static pages using 7 workers (126/126) in 915.7ms
+   Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /add-product
+├ ○ /admin
+├ ○ /admin/attendance
+├ ○ /admin/classes
+├ ƒ /admin/classes/[id]/edit
+├ ○ /admin/classes/new
+├ ○ /admin/dashboard
+├ ○ /admin/integrations
+├ ○ /admin/members
+├ ƒ /admin/members/[id]/edit
+├ ○ /admin/members/new
+├ ○ /admin/payments
+├ ƒ /admin/payments/[id]/edit
+├ ○ /admin/payments/new
+├ ○ /admin/programs
+├ ƒ /admin/programs/[id]/edit
+├ ○ /admin/programs/new
+├ ○ /admin/reservations
+├ ƒ /admin/reservations/[id]/edit
+├ ○ /admin/reservations/new
+├ ○ /admin/sessions
+├ ○ /admin/settings
+├ ○ /admin/wod
+├ ○ /admin/wod-feed
+├ ƒ /admin/wod/[id]/edit
+├ ○ /admin/wod/new
+├ ○ /alerts
+├ ○ /analytics
+├ ○ /api-keys
+├ ƒ /api/admin/classes
+├ ƒ /api/admin/coaches
+├ ƒ /api/admin/members
+├ ƒ /api/admin/programs
+├ ƒ /api/admin/sessions/seed-week
+├ ƒ /api/admin/wods
+├ ƒ /api/athlete/attendees
+├ ƒ /api/athlete/history
+├ ƒ /api/athlete/reservations
+├ ƒ /api/athlete/reservations/history
+├ ƒ /api/athlete/sessions
+├ ƒ /api/athlete/today
+├ ƒ /api/coach/attendance
+├ ƒ /api/programs
+├ ƒ /api/staff/attendance
+├ ƒ /api/wods
+├ ƒ /api/wods/comments
+├ ○ /athlete
+├ ○ /athlete/classes
+├ ○ /athlete/home
+├ ○ /athlete/profile
+├ ○ /athlete/reservations
+├ ○ /athlete/wod
+├ ○ /avatars
+├ ○ /badge
+├ ○ /bar-chart
+├ ○ /basic-tables
+├ ○ /billing
+├ ○ /blank
+├ ○ /breadcrumb
+├ ○ /buttons
+├ ○ /buttons-group
+├ ○ /calendar
+├ ○ /cards
+├ ○ /carousel
+├ ○ /chat
+├ ○ /coach
+├ ○ /coach/attendance
+├ ○ /coach/classes
+├ ○ /coach/dashboard
+├ ○ /coach/members
+├ ○ /coach/profile
+├ ○ /coach/sessions
+├ ○ /coach/wod
+├ ○ /code-generator
+├ ○ /coming-soon
+├ ○ /create-invoice
+├ ○ /crm
+├ ○ /data-tables
+├ ○ /dropdowns
+├ ○ /error-404
+├ ○ /error-500
+├ ○ /error-503
+├ ○ /faq
+├ ○ /file-manager
+├ ○ /form-elements
+├ ○ /form-layout
+├ ○ /image-generator
+├ ○ /images
+├ ○ /inbox
+├ ○ /inbox-details
+├ ○ /integrations
+├ ○ /invoices
+├ ○ /line-chart
+├ ○ /links
+├ ○ /list
+├ ○ /logistics
+├ ○ /maintenance
+├ ○ /marketing
+├ ○ /modals
+├ ○ /notifications
+├ ○ /pagination
+├ ○ /pie-chart
+├ ○ /popovers
+├ ○ /pricing-tables
+├ ○ /products-list
+├ ○ /profile
+├ ○ /progress-bar
+├ ○ /reset-password
+├ ○ /ribbons
+├ ○ /saas
+├ ƒ /set-password
+├ ƒ /signin
+├ ○ /signup
+├ ○ /single-invoice
+├ ○ /single-transaction
+├ ○ /spinners
+├ ○ /stocks
+├ ○ /success
+├ ○ /support-ticket-reply
+├ ○ /support-tickets
+├ ○ /tabs
+├ ○ /task-kanban
+├ ○ /task-list
+├ ○ /text-generator
+├ ○ /tooltips
+├ ○ /transactions
+├ ○ /two-step-verification
+├ ○ /video-generator
+└ ○ /videos
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

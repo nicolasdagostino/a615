@@ -234,7 +234,7 @@ async function ensureSessionsForRange(admin: any, startISO: string, days: number
   const { data: classes, error: cErr } = await admin
     .from("classes")
     .select("id, day, time, duration_min, capacity, status")
-    .neq("status", "cancelled")
+    .neq("status", "inactive")
     .order("day", { ascending: true })
     .order("time", { ascending: true });
 

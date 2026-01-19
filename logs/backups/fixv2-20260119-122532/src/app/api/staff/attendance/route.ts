@@ -67,7 +67,9 @@ export async function GET(req: Request) {
         capacity,
         status,
         notes,
-        classes:classes ( id, program:programs(name), coach_profile:profiles(full_name, email) )
+        classes:classes (
+          id, name, coach, type
+        )
       `)
       .eq("session_date", date)
       .order("start_time", { ascending: true });
@@ -149,9 +151,9 @@ export async function GET(req: Request) {
         notes: s.notes ?? null,
         class: {
           id: String(s.classes?.id || s.class_id),
-          name: String((s.classes as any)?.program?.name || ""),
-          coach: String((s.classes as any)?.coach_profile?.full_name || (s.classes as any)?.coach_profile?.email || ""),
-          type: String((s.classes as any)?.program?.name || ""),
+          name: String(s.classes?.name || ""),
+          coach: String(s.classes?.coach || ""),
+          type: String(s.classes?.type || ""),
         },
         roster,
       };
