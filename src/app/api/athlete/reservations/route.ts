@@ -80,8 +80,7 @@ export async function POST(req: Request) {
   
       // 5) Si existe cancelada -> reactivar
       if (existing && existing.cancelled_at) {
-        const { error: upErr } = await admin
-          .from("reservations")
+        const { error: upErr } = await admin.from("reservations")
           .update({ cancelled_at: null })
           .eq("id", existing.id);
   
@@ -128,8 +127,81 @@ export async function PATCH(req: Request) {
 
     const admin = createAdminClient();
 
-    const { error } = await admin
-      .from("reservations")
+    // --- Cancel guard (Madrid time): no cancelar si ya empezó/pasó o dentro de ventana ---
+    const cutoffMin = 30;
+
+    // 1) Traer start de la sesión
+    const { data: sess, error: sessErr } = await admin
+      .from("class_sessions")
+      .select("session_date, start_time")
+      .eq("id", sessionId)
+      .single();
+
+    if (sessErr || !sess) {
+      return NextResponse.json({ error: "Invalid sessionId" }, { status: 400 });
+    }
+
+    // 2) Now en Europe/Madrid (ms) usando Date.UTC (independiente del timezone del server)
+    const parts = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Europe/Madrid",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    }).formatToParts(new Date());
+
+    const get = (t: string) => parts.find((p) => p.type === t)?.value || "00";
+    const nowY = Number(get("year"));
+    const nowM = Number(get("month"));
+    const nowD = Number(get("day"));
+    const nowH = Number(get("hour"));
+    const nowMin = Number(get("minute"));
+    const nowS = Number(get("second"));
+    const nowMs = Date.UTC(nowY, nowM - 1, nowD, nowH, nowMin, nowS);
+
+    const dateISO = String((sess as any).session_date || "");
+    const st = String((sess as any).start_time || "00:00:00");
+    const hh = Number(st.slice(0, 2) || "0");
+    const mm = Number(st.slice(3, 5) || "0");
+
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateISO);
+    if (!m) {
+      return NextResponse.json({ error: "Invalid session_date" }, { status: 400 });
+    }
+    const y = Number(m[1]);
+    const mo = Number(m[2]);
+    const d = Number(m[3]);
+
+    const sessionMs = Date.UTC(y, mo - 1, d, hh, mm, 0);
+    const diffMin = Math.floor((sessionMs - nowMs) / 60000);
+
+    // ya empezó o ya pasó
+    if (diffMin <= 0) {
+      return NextResponse.json({ error: "No podés cancelar una clase ya iniciada o pasada." }, { status: 403 });
+    }
+
+    // dentro del cutoff
+    if (diffMin < cutoffMin) {
+      return NextResponse.json({ error: `La cancelación cierra ${cutoffMin} min antes del inicio.` }, { status: 403 });
+    }
+
+    // 3) Si ya hay asistencia registrada para ese user en esa sesión, bloquear cancelación
+    const { data: attRow } = await admin
+      .from("attendance")
+      .select("id")
+      .eq("session_id", sessionId)
+      .eq("user_id", user.id)
+      .limit(1)
+      .maybeSingle();
+
+    if (attRow) {
+      return NextResponse.json({ error: "No podés cancelar: ya hay asistencia registrada para esta sesión." }, { status: 403 });
+    }
+
+const { error } = await admin.from("reservations")
       .update({ cancelled_at: new Date().toISOString() })
       .eq("user_id", user.id)
       .eq("session_id", sessionId)

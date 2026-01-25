@@ -35,7 +35,7 @@ async function fetchSessionsWithTimeColumn(admin: any, start: string, end: strin
       .select(sel)
       .gte("session_date", start)
       .lt("session_date", end)
-      .lt("session_date", todayISO);
+      .lte("session_date", todayISO);
 
     // order: por fecha y por hora (si existe)
     let ordered = q.order("session_date", { ascending: true });
@@ -170,7 +170,7 @@ export async function GET(req: Request) {
       const coachName = coachNameById[coachId] || "—";
 
       return {
-        id: String(s.id),
+        id: String((s as any).session_id ?? (s as any).id ?? s.id),
         date: String(s.session_date),
         time: normalizeTime(s),
         durationMin: Number(s.duration_min ?? 0),
@@ -183,7 +183,7 @@ export async function GET(req: Request) {
           coach: coachName,
           type: programName,
         },
-        attendanceStatus: attendanceBySessionId.get(String(s.id)) ?? null,
+        attendanceStatus: attendanceBySessionId.get(String((s as any).session_id ?? (s as any).id ?? s.id)) ?? null,
       };
     });
 

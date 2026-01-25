@@ -1,4 +1,5 @@
 "use client";
+import { usePathname } from "next/navigation";
 
 import React, { useEffect, useMemo, useState } from "react";
 import Badge from "@/components/ui/badge/Badge";
@@ -9,6 +10,13 @@ import { useModal } from "@/hooks/useModal";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
 import RoundedRibbon from "@/components/ui/ribbons/RoundedRibbon";
 import FilledRibbon from "@/components/ui/ribbons/FilledRibbon";
+import SessionAttendanceModal from "@/components/attendance/SessionAttendanceModal";
+
+
+type AthleteClassesProps = {
+  staffMode?: boolean; // coach/admin
+};
+
 
 
 /** API shapes */
@@ -123,10 +131,11 @@ function ribbonColorClassFor(label: string) {
   return "bg-brand-500";
 }
 
-export default function AthleteClasses() {
+export default function AthleteClasses({ staffMode: staffModeProp = false }: AthleteClassesProps) {
   const [view, setView] = useState<"week" | "history">("week");
-
-  // Hoy (Madrid)
+  const pathname = usePathname();
+  const staffMode = staffModeProp || pathname.startsWith("/admin") || pathname.startsWith("/coach");
+// Hoy (Madrid)
   const [todayISO, setTodayISO] = useState<string>(() => isoTodayMadrid());
 
   // Rango vigente (hoy + 6)
@@ -147,6 +156,23 @@ export default function AthleteClasses() {
   const [sessionsWeek, setSessionsWeek] = useState<ApiSession[]>([]);
   const [historyMonth, setHistoryMonth] = useState<HistorySession[]>([]);
   const [loadingWeek, setLoadingWeek] = useState(false);
+
+  // ATTENDANCE_MODAL_WIRING (coach/admin inside Sessions modal)
+  const [attOpen, setAttOpen] = useState(false);
+  const [attSessionId, setAttSessionId] = useState<string | null>(null);
+  const [attSessionLabel, setAttSessionLabel] = useState<string>("");
+
+  const openAttendance = (sessionId: string, label: string) => {
+    setAttSessionId(sessionId);
+    setAttSessionLabel(label);
+    setAttOpen(true);
+  };
+
+  const closeAttendance = () => {
+    setAttOpen(false);
+    setAttSessionId(null);
+    setAttSessionLabel("");
+  };
   const [loadingHistory, setLoadingHistory] = useState(false);
 
   // Confirm modals
@@ -212,7 +238,39 @@ export default function AthleteClasses() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  
+
+  // REFRESH_ON_FOCUS_VISIBILITY:
+  // Si el athlete tiene abierta la pantalla y el admin/coach marca asistencia,
+  // al volver al tab queremos refrescar para que deje de mostrar "Pending".
   useEffect(() => {
+    const refresh = () => {
+      try {
+        if (document.visibilityState !== "visible") return;
+        if (view === "history") {
+          loadHistory(year, month);
+        } else {
+          loadWeek(startISO);
+        }
+      } catch {
+        // noop
+      }
+    };
+
+    const onFocus = () => refresh();
+    const onVis = () => refresh();
+
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVis);
+
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVis);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view, year, month, startISO]);
+
+useEffect(() => {
     if (view !== "history") return;
     loadHistory(year, month);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -237,7 +295,7 @@ export default function AthleteClasses() {
   const historySorted = useMemo(() => {
     const today = todayISO;
     return [...historyMonth]
-      .filter((s) => String(s.date) < String(today))
+      .filter((s) => String(s.date) <= String(today))
       .sort((a, b) => (a.date === b.date ? a.time.localeCompare(b.time) : a.date.localeCompare(b.date)));
   }, [historyMonth, todayISO]);
 
@@ -310,6 +368,17 @@ export default function AthleteClasses() {
   };
 
   const openDetails = async (s: ApiSession) => {
+    const sid = String((s as any)?.id || "");
+    const label =
+      `${String((s as any)?.programName || (s as any)?.class?.name || "Session")} · ${String((s as any)?.date || "")} ${String((s as any)?.time || "")}`.trim();
+
+    // ✅ Staff (admin/coach): el "ojo" abre el modal de Asistencia (no attendees)
+    if (staffMode && sid) {
+      openAttendance(sid, label || sid);
+      return;
+    }
+
+    // Athlete: modal de attendees (comportamiento original)
     setDetailsSession(s);
     setAttendees([]);
     setDetailsMsg("");
@@ -533,7 +602,7 @@ export default function AthleteClasses() {
 
                                 <button
                                   type="button"
-                                  onClick={() => openDetails(s)}
+                                  onClick={() => { if (staffMode) { const sid = String((s as any)?.id || ""); const label = `${String((s as any)?.programName || (s as any)?.class?.name || "Session")} · ${String((s as any)?.date || "")} ${String((s as any)?.time || "")}`.trim(); if (sid) openAttendance(sid, label || sid); } else { openDetails(s); } }}
                                   className="shadow-theme-xs inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 text-gray-500 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200"
                                 >
                                   <svg
@@ -838,6 +907,17 @@ export default function AthleteClasses() {
           </div>
         </div>
       </Modal>
+        {/* Attendance modal (coach/admin) */}
+  <SessionAttendanceModal
+    open={attOpen}
+    onClose={closeAttendance}
+    staffMode={staffMode}
+    sessionId={attSessionId}
+    sessionLabel={attSessionLabel}
+  />
     </div>
   );
+
+
+
 }

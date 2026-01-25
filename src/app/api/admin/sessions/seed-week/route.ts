@@ -24,7 +24,6 @@ function toDayCode(d: Date): string {
 }
 
 function addDays(dateISO: string, days: number): string {
-  // dateISO = YYYY-MM-DD, tratamos como UTC para evitar corrimientos
   const d = new Date(`${dateISO}T00:00:00.000Z`);
   d.setUTCDate(d.getUTCDate() + days);
   const y = d.getUTCFullYear();
@@ -43,7 +42,7 @@ async function assertAdmin() {
   }
 
   const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
-  if ((profile as any)?.role !== "admin") {
+  if (String((profile as any)?.role || "").toLowerCase() !== "admin") {
     return { ok: false as const, res: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
   }
 
@@ -53,6 +52,7 @@ async function assertAdmin() {
 /**
  * POST /api/admin/sessions/seed-week?start=YYYY-MM-DD
  * Crea/actualiza (upsert) sesiones para 7 días desde start.
+ * SOLO toma clases activas (is_active=true).
  */
 export async function POST(req: Request) {
   try {
@@ -71,13 +71,13 @@ export async function POST(req: Request) {
     const { data: classes, error: cErr } = await admin
       .from("classes")
       .select("id, day, time, duration_min, capacity, status")
+      .eq("is_active", true)
       .order("day", { ascending: true })
       .order("time", { ascending: true });
 
     if (cErr) return NextResponse.json({ error: cErr.message }, { status: 400 });
 
     const rows = (classes || []) as any as ClassRow[];
-
     const inserts: any[] = [];
 
     for (let i = 0; i < 7; i++) {
@@ -88,9 +88,8 @@ export async function POST(req: Request) {
       const forDay = rows.filter((c) => String(c.day || "").trim().toLowerCase() === dayCode);
 
       for (const c of forDay) {
-        // start_time en DB es TIME: le pasamos HH:MM:SS
         const t = String(c.time || "").trim();
-        const startTime = t.length === 5 ? `${t}:00` : t; // "17:00" -> "17:00:00"
+        const startTime = t.length === 5 ? `${t}:00` : t;
 
         inserts.push({
           class_id: c.id,
@@ -98,15 +97,15 @@ export async function POST(req: Request) {
           start_time: startTime,
           duration_min: Number(c.duration_min ?? 60),
           capacity: Number(c.capacity ?? 12),
-          status: String(c.status || "scheduled"),});
+          status: String(c.status || "scheduled"),
+        });
       }
     }
 
     if (inserts.length === 0) {
-      return NextResponse.json({ ok: true, created: 0, note: "No classes found to seed." });
+      return NextResponse.json({ ok: true, createdOrUpdated: 0, note: "No active classes found to seed." });
     }
 
-    // Upsert por constraint unique (class_id, session_date, start_time)
     const { data: up, error: upErr } = await admin
       .from("class_sessions")
       .upsert(inserts, { onConflict: "class_id,session_date,start_time" })
@@ -114,12 +113,7 @@ export async function POST(req: Request) {
 
     if (upErr) return NextResponse.json({ error: upErr.message }, { status: 400 });
 
-    return NextResponse.json({
-      ok: true,
-      start,
-      days: 7,
-      createdOrUpdated: (up || []).length,
-    });
+    return NextResponse.json({ ok: true, start, days: 7, createdOrUpdated: (up || []).length });
   } catch (e: any) {
     return NextResponse.json({ error: e?.message || "Server error" }, { status: 500 });
   }

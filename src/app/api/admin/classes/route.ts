@@ -48,13 +48,14 @@ export async function GET(req: Request) {
 
     const admin = createAdminClient();
     const url = new URL(req.url);
+    const includeInactive = String(url.searchParams.get("includeInactive") || "").trim() === "1";
     const idParam = String(url.searchParams.get("id") || "").trim();
 
     // DETAIL
     if (idParam) {
       const { data: one, error: oneErr } = await admin
         .from("classes")
-        .select("id, program_id, coach_id, day, time, duration_min, capacity, status")
+        .select("id, program_id, coach_id, day, time, duration_min, capacity, status, is_active")
         .eq("id", idParam)
         .single();
 
@@ -95,15 +96,21 @@ export async function GET(req: Request) {
               ? ""
               : String((one as any).capacity),
           status: String((one as any).status || "scheduled"),
+          isActive: Boolean((one as any).is_active ?? true),
         },
       });
     }
 
-    // LIST (solo activas)
-    const { data, error } = await admin
+    // LIST (por defecto SOLO activas; includeInactive=1 muestra todas)
+    let q = admin
       .from("classes")
-      .select("id, program_id, coach_id, day, time, duration_min, capacity, status")
-      .neq("status", "inactive")
+      .select("id, program_id, coach_id, day, time, duration_min, capacity, status, is_active");
+
+    if (!includeInactive) {
+      q = q.eq("is_active", true);
+    }
+
+    const { data, error } = await q
       .order("day", { ascending: true })
       .order("time", { ascending: true });
 
@@ -132,6 +139,8 @@ export async function GET(req: Request) {
       return {
         id: String(r.id),
         programId,
+        // Compat: algunas pantallas esperan "name"
+        name: programNameById[programId] || "—",
         program: programNameById[programId] || "—",
         coachId,
         coach: coachNameById[coachId] || "—",
@@ -140,6 +149,7 @@ export async function GET(req: Request) {
         durationMin: Number(r.duration_min ?? 0),
         capacity: Number(r.capacity ?? 0),
         status: "Scheduled",
+        isActive: Boolean(r.is_active ?? true),
       };
     });
 
@@ -197,6 +207,7 @@ export async function POST(req: Request) {
         duration_min: durationMin,
         capacity,
         status,
+        is_active: true,
       })
       .select("id")
       .single();
@@ -210,7 +221,6 @@ export async function POST(req: Request) {
 
 /**
  * PATCH /api/admin/classes
- * body: { id, programId, coachId, day, time, durationMin, capacity, status }
  */
 export async function PATCH(req: Request) {
   try {
@@ -265,7 +275,11 @@ export async function PATCH(req: Request) {
 
 /**
  * DELETE /api/admin/classes?id=...
- * Hard delete: borra la clase (y sus sesiones futuras) de verdad.
+ * Soft delete: deja historial intacto y limpia FUTURAS sesiones.
+ */
+/**
+ * DELETE /api/admin/classes?id=...
+ * Soft delete: deja historial intacto y cancela FUTURAS sesiones (no borra filas).
  */
 export async function DELETE(req: Request) {
   try {
@@ -278,23 +292,61 @@ export async function DELETE(req: Request) {
 
     const admin = createAdminClient();
 
-    // 1) borrar sesiones FUTURAS
-    const todayISO = new Date().toISOString().slice(0, 10);
-    const { error: delSessionsErr } = await admin
+    // "Hoy" en Madrid (YYYY-MM-DD)
+    const parts = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Europe/Madrid",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).formatToParts(new Date());
+    const y = parts.find((p) => p.type === "year")?.value ?? "1970";
+    const m = parts.find((p) => p.type === "month")?.value ?? "01";
+    const d = parts.find((p) => p.type === "day")?.value ?? "01";
+    const todayISO = `${y}-${m}-${d}`;
+
+    // 1) Soft-delete: inactivar clase
+    const { error: clsErr } = await admin
+      .from("classes")
+      .update({ is_active: false, updated_at: new Date().toISOString() })
+      .eq("id", id);
+
+    if (clsErr) return NextResponse.json({ error: clsErr.message }, { status: 400 });
+
+    // 2) Cancelar sesiones FUTURAS (NO borrar)
+    const { error: sessUpdErr } = await admin
       .from("class_sessions")
-      .delete()
+      .update({ status: "cancelled", updated_at: new Date().toISOString() })
       .eq("class_id", id)
       .gte("session_date", todayISO);
 
-    if (delSessionsErr) return NextResponse.json({ error: delSessionsErr.message }, { status: 400 });
+    if (sessUpdErr) return NextResponse.json({ error: sessUpdErr.message }, { status: 400 });
 
-    // 2) borrar la clase
-    const { error: delClassErr } = await admin.from("classes").delete().eq("id", id);
-    if (delClassErr) return NextResponse.json({ error: delClassErr.message }, { status: 400 });
+    // 3) Traer ids de sesiones futuras (para cancelar reservas activas)
+    const { data: futureSessions, error: sessErr } = await admin
+      .from("class_sessions")
+      .select("id")
+      .eq("class_id", id)
+      .gte("session_date", todayISO);
+
+    if (sessErr) return NextResponse.json({ error: sessErr.message }, { status: 400 });
+
+    const sessionIds = (futureSessions || []).map((s: any) => String(s.id)).filter(Boolean);
+
+    // 4) Cancelar reservas activas de esas sesiones
+    if (sessionIds.length) {
+      const { error: resErr } = await admin
+        .from("reservations")
+        .update({ cancelled_at: new Date().toISOString() })
+        .in("session_id", sessionIds)
+        .is("cancelled_at", null);
+
+      if (resErr) return NextResponse.json({ error: resErr.message }, { status: 400 });
+    }
 
     return NextResponse.json({ ok: true });
   } catch (e: any) {
     return NextResponse.json({ error: e?.message || "Server error" }, { status: 500 });
   }
 }
+
 

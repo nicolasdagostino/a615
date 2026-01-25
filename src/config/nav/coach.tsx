@@ -9,7 +9,6 @@ export const coachNav: NavItem[] = [
   // Booking as user
   { name: "Sesiones", icon: <CalenderIcon />, path: "/coach/sessions" },
 
-  { name: "Asistencia", icon: <TaskIcon />, path: "/coach/attendance" },
   { name: "Workouts (WOD)", icon: <TaskIcon />, path: "/coach/wod" },
   { name: "Perfil", icon: <UserCircleIcon />, path: "/coach/profile" },
 ];
