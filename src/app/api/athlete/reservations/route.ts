@@ -16,11 +16,32 @@ export async function POST(req: Request) {
   
       const body = await req.json().catch(() => ({} as any));
       const sessionId = String(body.sessionId || "").trim();
-      if (!sessionId) return NextResponse.json({ error: "sessionId is required" }, { status: 400 });
+
+    // B1: block when session completed (POST)
+    
+if (!sessionId) return NextResponse.json({ error: "sessionId is required" }, { status: 400 });
   
       const admin = createAdminClient();
   
-      // 1) Cargar sesión
+      
+// No reservar/cancelar si la sesión ya fue finalizada (status != scheduled)
+    try {
+      const { data: sess } = await admin
+        .from("class_sessions")
+        .select("id, status")
+        .eq("id", sessionId)
+        .single();
+      const st = String((sess as any)?.status || "scheduled").toLowerCase();
+      if (st !== "scheduled") {
+        return NextResponse.json({ error: "Session closed" }, { status: 409 });
+      }
+    } catch {
+      // si falla el check, preferimos bloquear por seguridad
+      return NextResponse.json({ error: "Session check failed" }, { status: 409 });
+    }
+
+      
+// 1) Cargar sesión
       const { data: s, error: sErr } = await admin
         .from("class_sessions")
         .select("id, session_date, start_time, capacity, status")
@@ -123,11 +144,32 @@ export async function PATCH(req: Request) {
 
     const body = await req.json().catch(() => ({} as any));
     const sessionId = String(body.sessionId || "").trim();
-    if (!sessionId) return NextResponse.json({ error: "sessionId is required" }, { status: 400 });
+
+    // B1: block when session completed (PATCH)
+    
+if (!sessionId) return NextResponse.json({ error: "sessionId is required" }, { status: 400 });
 
     const admin = createAdminClient();
 
-    // --- Cancel guard (Madrid time): no cancelar si ya empezó/pasó o dentro de ventana ---
+    
+// No reservar/cancelar si la sesión ya fue finalizada (status != scheduled)
+    try {
+      const { data: sess } = await admin
+        .from("class_sessions")
+        .select("id, status")
+        .eq("id", sessionId)
+        .single();
+      const st = String((sess as any)?.status || "scheduled").toLowerCase();
+      if (st !== "scheduled") {
+        return NextResponse.json({ error: "Session closed" }, { status: 409 });
+      }
+    } catch {
+      // si falla el check, preferimos bloquear por seguridad
+      return NextResponse.json({ error: "Session check failed" }, { status: 409 });
+    }
+
+    
+// --- Cancel guard (Madrid time): no cancelar si ya empezó/pasó o dentro de ventana ---
     const cutoffMin = 30;
 
     // 1) Traer start de la sesión

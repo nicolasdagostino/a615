@@ -146,6 +146,8 @@ export async function GET(req: Request) {
     return NextResponse.json({
       ok: true,
       session: {
+            status: String((sess as any)?.status || "scheduled"),
+            
         id: String((sess as any).id),
         sessionLabel,
         attendees,
@@ -203,6 +205,44 @@ session_id: sessionId,
  * DELETE /api/coach/attendance
  * body: { sessionId } -> borra attendance de esa sesión (reset).
  */
+
+export async function PATCH(req: Request) {
+  try {
+    const supabase = await createClient();
+    const { data: userData } = await supabase.auth.getUser();
+    const user = userData.user;
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const admin = createAdminClient();
+
+    // role check
+    const { data: prof } = await supabase.from("profiles").select("role").eq("id", user.id).single();
+    const role = String((prof as any)?.role || "").toLowerCase();
+    if (role !== "admin" && role !== "coach") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    const body = await req.json().catch(() => ({}));
+    const sessionId = String((body as any)?.sessionId || "").trim();
+    const action = String((body as any)?.action || "close").trim().toLowerCase(); // close | reopen
+
+    if (!sessionId) return NextResponse.json({ error: "sessionId required" }, { status: 400 });
+
+    const nextStatus = action === "reopen" ? "scheduled" : "completed";
+
+    const { error: upErr } = await admin
+      .from("class_sessions")
+      .update({ status: nextStatus })
+      .eq("id", sessionId);
+
+    if (upErr) return NextResponse.json({ error: upErr.message }, { status: 400 });
+
+    return NextResponse.json({ ok: true, sessionId, status: nextStatus });
+  } catch (e: any) {
+    return NextResponse.json({ error: e?.message || "Server error" }, { status: 500 });
+  }
+}
+
 export async function DELETE(req: Request) {
   try {
     const auth = await assertStaff();

@@ -12,12 +12,9 @@ import RoundedRibbon from "@/components/ui/ribbons/RoundedRibbon";
 import FilledRibbon from "@/components/ui/ribbons/FilledRibbon";
 import SessionAttendanceModal from "@/components/attendance/SessionAttendanceModal";
 
-
 type AthleteClassesProps = {
   staffMode?: boolean; // coach/admin
 };
-
-
 
 /** API shapes */
 type ApiSession = {
@@ -28,7 +25,7 @@ type ApiSession = {
   capacity: number;
   reservedCount: number;
   remaining: number;
-  status: string;
+  status: string; // scheduled | completed | cancelled...
   notes?: string | null;
   class: {
     id: string;
@@ -37,6 +34,7 @@ type ApiSession = {
     type: string;
   };
   reservedByMe: boolean;
+  attendanceStatus?: "present" | "absent" | null;
 };
 
 type HistorySession = {
@@ -53,7 +51,7 @@ type HistorySession = {
     coach: string;
     type: string;
   };
-  attendanceStatus: "present" | "absent" | null; // null = pendiente
+  attendanceStatus: "present" | "absent" | null; // null = pendiente / no marcada
 };
 
 type AttendeeLite = { userId: string; fullName: string | null };
@@ -74,8 +72,18 @@ function fmtDDMM(iso: string) {
 
 function monthLabel(m: number) {
   const labels = [
-    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
+    "Enero",
+    "Febrero",
+    "Marzo",
+    "Abril",
+    "Mayo",
+    "Junio",
+    "Julio",
+    "Agosto",
+    "Septiembre",
+    "Octubre",
+    "Noviembre",
+    "Diciembre",
   ];
   return labels[m - 1] ?? String(m);
 }
@@ -95,20 +103,24 @@ function isoTodayMadrid() {
   return `${y}-${m}-${d}`;
 }
 
-/** Lunes de la semana (ISO) tomando como base un ISO YYYY-MM-DD */
-function weekStartMondayISO(todayISO: string) {
-  const [y, m, d] = todayISO.split("-").map(Number);
-  const utc = Date.UTC(y, m - 1, d);
-  const day = new Date(utc).getUTCDay(); // 0=Sun..6=Sat
-  const offsetToMonday = (day + 6) % 7; // Mon=0..Sun=6
-  const mondayUTC = utc - offsetToMonday * 24 * 60 * 60 * 1000;
-  return new Date(mondayUTC).toISOString().slice(0, 10);
+function nowMinutesMadrid(): number {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/Madrid",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(new Date());
+
+  const hh = Number(parts.find((p) => p.type === "hour")?.value ?? "0");
+  const mm = Number(parts.find((p) => p.type === "minute")?.value ?? "0");
+  return hh * 60 + mm;
 }
 
-function addDaysISO(iso: string, days: number) {
-  const [y, m, d] = iso.split("-").map(Number);
-  const utc = Date.UTC(y, m - 1, d) + days * 24 * 60 * 60 * 1000;
-  return new Date(utc).toISOString().slice(0, 10);
+function parseHHMMToMinutes(hhmm: string): number | null {
+  const t = String(hhmm || "").slice(0, 5);
+  const m = t.match(/^(\d{2}):(\d{2})$/);
+  if (!m) return null;
+  return Number(m[1]) * 60 + Number(m[2]);
 }
 
 function badgeForAttendance(st: "present" | "absent" | null): { label: string; color: BadgeColor } {
@@ -117,8 +129,43 @@ function badgeForAttendance(st: "present" | "absent" | null): { label: string; c
   return { label: "Pending", color: "info" };
 }
 
+
+function normalizeSessionStatus(raw: any): string {
+  const st = String(raw || "").trim().toLowerCase();
+  if (!st) return "scheduled";
+  if (st === "canceled") return "cancelled"; // US -> UK
+  if (st === "done" || st === "finished" || st === "finalized") return "completed";
+  return st;
+}
+
+function sessionStatusBadge(s: ApiSession, todayISO: string): { label: string; color: BadgeColor } | null {
+  const st = normalizeSessionStatus((s as any).status);
+
+  // Si NO es scheduled, siempre mostramos badge
+  if (st === "completed") return { label: "Completed", color: "success" };
+  if (st === "cancelled") return { label: "Cancelled", color: "error" };
+  if (st !== "scheduled") return { label: st.toUpperCase(), color: "warning" as BadgeColor };
+
+  // Heurística "In progress" solo para UI (Madrid)
+  const startMin = parseHHMMToMinutes(s.time);
+  if (!startMin) return null;
+  const dur = Number(s.durationMin || 0);
+  const nowMin = nowMinutesMadrid();
+  if (String(s.date) === String(todayISO) && nowMin >= startMin && nowMin < startMin + Math.max(1, dur)) {
+    return { label: "In progress", color: "warning" as BadgeColor };
+  }
+  return null;
+}
+
+
+
+
 function isScheduled(status: string) {
   return String(status || "").trim().toLowerCase() === "scheduled";
+}
+
+function isCompleted(status: string) {
+  return String(status || "").trim().toLowerCase() === "completed";
 }
 
 function ribbonColorClassFor(label: string) {
@@ -131,11 +178,13 @@ function ribbonColorClassFor(label: string) {
   return "bg-brand-500";
 }
 
+
 export default function AthleteClasses({ staffMode: staffModeProp = false }: AthleteClassesProps) {
   const [view, setView] = useState<"week" | "history">("week");
   const pathname = usePathname();
   const staffMode = staffModeProp || pathname.startsWith("/admin") || pathname.startsWith("/coach");
-// Hoy (Madrid)
+
+  // Hoy (Madrid)
   const [todayISO, setTodayISO] = useState<string>(() => isoTodayMadrid());
 
   // Rango vigente (hoy + 6)
@@ -173,6 +222,7 @@ export default function AthleteClasses({ staffMode: staffModeProp = false }: Ath
     setAttSessionId(null);
     setAttSessionLabel("");
   };
+
   const [loadingHistory, setLoadingHistory] = useState(false);
 
   // Confirm modals
@@ -181,7 +231,7 @@ export default function AthleteClasses({ staffMode: staffModeProp = false }: Ath
   const [target, setTarget] = useState<ApiSession | null>(null);
   const [errorMsg, setErrorMsg] = useState<string>("");
 
-  // Details modal
+  // Details modal (athlete attendees list)
   const detailsModal = useModal();
   const [detailsSession, setDetailsSession] = useState<ApiSession | null>(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
@@ -230,51 +280,33 @@ export default function AthleteClasses({ staffMode: staffModeProp = false }: Ath
   useEffect(() => {
     const t = isoTodayMadrid();
     setTodayISO(t);
-
     setStartISO(t);
-
     setActiveDayISO(t);
     loadWeek(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  
-
-  // REFRESH_ON_FOCUS_VISIBILITY:
-  // Si el athlete tiene abierta la pantalla y el admin/coach marca asistencia,
-  // al volver al tab queremos refrescar para que deje de mostrar "Pending".
   useEffect(() => {
-    const refresh = () => {
-      try {
-        if (document.visibilityState !== "visible") return;
-        if (view === "history") {
-          loadHistory(year, month);
-        } else {
-          loadWeek(startISO);
-        }
-      } catch {
-        // noop
-      }
-    };
-
-    const onFocus = () => refresh();
-    const onVis = () => refresh();
-
-    window.addEventListener("focus", onFocus);
-    document.addEventListener("visibilitychange", onVis);
-
-    return () => {
-      window.removeEventListener("focus", onFocus);
-      document.removeEventListener("visibilitychange", onVis);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [view, year, month, startISO]);
-
-useEffect(() => {
     if (view !== "history") return;
     loadHistory(year, month);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view, year, month]);
+
+  // Lunes de la semana (ISO) tomando como base un ISO YYYY-MM-DD
+  function weekStartMondayISO(todayISO: string) {
+    const [y, m, d] = todayISO.split("-").map(Number);
+    const utc = Date.UTC(y, m - 1, d);
+    const day = new Date(utc).getUTCDay(); // 0=Sun..6=Sat
+    const offsetToMonday = (day + 6) % 7; // Mon=0..Sun=6
+    const mondayUTC = utc - offsetToMonday * 24 * 60 * 60 * 1000;
+    return new Date(mondayUTC).toISOString().slice(0, 10);
+  }
+
+  function addDaysISO(iso: string, days: number) {
+    const [y, m, d] = iso.split("-").map(Number);
+    const utc = Date.UTC(y, m - 1, d) + days * 24 * 60 * 60 * 1000;
+    return new Date(utc).toISOString().slice(0, 10);
+  }
 
   const sessionsByDay = useMemo(() => {
     const map: Record<string, ApiSession[]> = {};
@@ -420,24 +452,40 @@ useEffect(() => {
           <div className="grid grid-cols-2 items-center gap-x-1 gap-y-2 rounded-lg bg-gray-100 p-0.5 dark:bg-gray-900">
             <button
               onClick={() => setView("week")}
-              className={`inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium hover:text-gray-900 dark:hover:text-white ${view === "week" ? "bg-white text-gray-900 dark:bg-gray-800 dark:text-white" : "text-gray-500 dark:text-gray-400"
-                }`}
+              className={`inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium hover:text-gray-900 dark:hover:text-white ${
+                view === "week"
+                  ? "bg-white text-gray-900 dark:bg-gray-800 dark:text-white"
+                  : "text-gray-500 dark:text-gray-400"
+              }`}
             >
               Week
-              <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium leading-normal ${view === "week" ? "bg-brand-50 text-brand-500 dark:bg-brand-500/15 dark:text-brand-400" : "bg-white dark:bg-white/[0.03]"
-                }`}>
+              <span
+                className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium leading-normal ${
+                  view === "week"
+                    ? "bg-brand-50 text-brand-500 dark:bg-brand-500/15 dark:text-brand-400"
+                    : "bg-white dark:bg-white/[0.03]"
+                }`}
+              >
                 {weekCount}
               </span>
             </button>
 
             <button
               onClick={() => setView("history")}
-              className={`inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium hover:text-gray-900 dark:hover:text-white ${view === "history" ? "bg-white text-gray-900 dark:bg-gray-800 dark:text-white" : "text-gray-500 dark:text-gray-400"
-                }`}
+              className={`inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium hover:text-gray-900 dark:hover:text-white ${
+                view === "history"
+                  ? "bg-white text-gray-900 dark:bg-gray-800 dark:text-white"
+                  : "text-gray-500 dark:text-gray-400"
+              }`}
             >
               History
-              <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium leading-normal ${view === "history" ? "bg-brand-50 text-brand-500 dark:bg-brand-500/15 dark:text-brand-400" : "bg-white dark:bg-white/[0.03]"
-                }`}>
+              <span
+                className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium leading-normal ${
+                  view === "history"
+                    ? "bg-brand-50 text-brand-500 dark:bg-brand-500/15 dark:text-brand-400"
+                    : "bg-white dark:bg-white/[0.03]"
+                }`}
+              >
                 {historyCount}
               </span>
             </button>
@@ -456,10 +504,11 @@ useEffect(() => {
                       <button
                         key={d}
                         onClick={() => setActiveDayISO(d)}
-                        className={`inline-flex items-center rounded-lg px-4 py-2 text-sm font-medium transition-colors ${active
+                        className={`inline-flex items-center rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                          active
                             ? "bg-brand-50 text-brand-500 dark:bg-brand-400/20 dark:text-brand-400"
                             : "bg-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                          }`}
+                        }`}
                       >
                         {fmtDDMM(d)}
                       </button>
@@ -474,45 +523,37 @@ useEffect(() => {
                   <span className="font-medium text-gray-700 dark:text-gray-200">{fmtDateES(activeDayISO)}</span>
                 </span>
                 <div className="group relative inline-block">
-  <button
-    type="button"
-    onClick={() => loadWeek(startISO)}
-    disabled={loadingWeek}
-    aria-label="Reload"
-    className={`shadow-theme-xs inline-flex h-11 w-11 items-center justify-center rounded-lg border border-gray-300 text-gray-700 dark:border-gray-700 dark:text-gray-400 ${
-      loadingWeek
-        ? "opacity-50 cursor-not-allowed"
-        : "hover:bg-gray-50 dark:hover:bg-white/[0.03] dark:hover:text-gray-200"
-    }`}
-  >
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="20"
-      height="20"
-      viewBox="0 0 20 20"
-      fill="none"
-    >
-      <path
-        d="M17.0436 8.11306C16.6282 6.56272 15.7128 5.19276 14.4395 4.21568C13.1661 3.2386 11.6059 2.70898 10.0009 2.70898C8.39585 2.70898 6.83566 3.2386 5.5623 4.21568C4.28894 5.19276 3.37357 6.56271 2.95816 8.11306C2.87345 8.42919 2.81944 8.65089 2.78711 8.80352M2.9559 11.8866C3.37131 13.437 4.28668 14.8069 5.56004 15.784C6.8334 16.7611 8.39359 17.2907 9.99862 17.2907C11.6037 17.2907 13.1638 16.7611 14.4372 15.784C15.7106 14.8069 16.6259 13.437 17.0414 11.8866C17.1278 11.5641 17.1826 11.3399 17.2152 11.1871M5.4327 7.49705L2.86544 8.94265L2.78711 8.80352M1.41992 6.37512L2.78711 8.80352M14.575 12.503L17.1422 11.0574L17.2152 11.1871M18.5877 13.6249L17.2152 11.1871"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  </button>
+                  <button
+                    type="button"
+                    onClick={() => loadWeek(startISO)}
+                    disabled={loadingWeek}
+                    aria-label="Reload"
+                    className={`shadow-theme-xs inline-flex h-11 w-11 items-center justify-center rounded-lg border border-gray-300 text-gray-700 dark:border-gray-700 dark:text-gray-400 ${
+                      loadingWeek
+                        ? "opacity-50 cursor-not-allowed"
+                        : "hover:bg-gray-50 dark:hover:bg-white/[0.03] dark:hover:text-gray-200"
+                    }`}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                      <path
+                        d="M17.0436 8.11306C16.6282 6.56272 15.7128 5.19276 14.4395 4.21568C13.1661 3.2386 11.6059 2.70898 10.0009 2.70898C8.39585 2.70898 6.83566 3.2386 5.5623 4.21568C4.28894 5.19276 3.37357 6.56271 2.95816 8.11306C2.87345 8.42919 2.81944 8.65089 2.78711 8.80352M2.9559 11.8866C3.37131 13.437 4.28668 14.8069 5.56004 15.784C6.8334 16.7611 8.39359 17.2907 9.99862 17.2907C11.6037 17.2907 13.1638 16.7611 14.4372 15.784C15.7106 14.8069 16.6259 13.437 17.0414 11.8866C17.1278 11.5641 17.1826 11.3399 17.2152 11.1871M5.4327 7.49705L2.86544 8.94265L2.78711 8.80352M1.41992 6.37512L2.78711 8.80352M14.575 12.503L17.1422 11.0574L17.2152 11.1871M18.5877 13.6249L17.2152 11.1871"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </button>
 
-  {/* Tooltip igual al template (opcional) */}
-  <div className="invisible absolute bottom-full left-1/2 z-9999 mb-2.5 -translate-x-1/2 opacity-0 transition-opacity duration-300 group-hover:visible group-hover:opacity-100">
-    <div className="relative">
-      <div className="rounded-lg bg-white px-3 py-2 text-xs font-medium whitespace-nowrap text-gray-700 shadow-xs dark:bg-[#1E2634] dark:text-white">
-        Reload
-      </div>
-      <div className="absolute -bottom-1 left-1/2 h-3 w-4 -translate-x-1/2 rotate-45 bg-white dark:bg-[#1E2634]"></div>
-    </div>
-  </div>
-</div>
-
+                  <div className="invisible absolute bottom-full left-1/2 z-9999 mb-2.5 -translate-x-1/2 opacity-0 transition-opacity duration-300 group-hover:visible group-hover:opacity-100">
+                    <div className="relative">
+                      <div className="rounded-lg bg-white px-3 py-2 text-xs font-medium whitespace-nowrap text-gray-700 shadow-xs dark:bg-[#1E2634] dark:text-white">
+                        Reload
+                      </div>
+                      <div className="absolute -bottom-1 left-1/2 h-3 w-4 -translate-x-1/2 rotate-45 bg-white dark:bg-[#1E2634]"></div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {loadingWeek ? (
@@ -528,33 +569,54 @@ useEffect(() => {
                   {daySessions.map((s) => {
                     const ribbonLabel = (s.class?.name || s.class?.type || "Session").trim();
                     const full = (s.remaining ?? 0) <= 0;
-                    const disabledReserve = full || !isScheduled(s.status);
+
+                    const scheduled = isScheduled(s.status);
+                    const completed = isCompleted(s.status);
+
+                    const disabledReserve = full || !scheduled;
+                    const disabledCancel = !scheduled; // B2: si está completed/cancelled, no cancelar
+
+                    const reserveTitle = !scheduled
+                      ? "Esta clase ya fue finalizada o cancelada"
+                      : full
+                      ? "No quedan cupos"
+                      : "";
+
+                    const cancelTitle = !scheduled ? "No se puede cancelar una clase finalizada/cancelada" : "";
+
+                    const stBadge = sessionStatusBadge(s, todayISO);
+
+                    console.log("SESSION_STATUS", s.id, s.status);
 
                     return (
                       <div key={s.id} className="relative">
-                        {/* Time badge arriba derecha */}
-                        <div className="absolute right-4 top-4 z-10">
+                        {/* Badges arriba derecha: hora + status */}
+                        <div className="absolute right-4 top-4 z-10 flex flex-col items-end gap-2">
                           <Badge size="sm" color="info">
                             {s.time}
                           </Badge>
+
+                          {stBadge ? (
+                            <Badge size="sm" color={stBadge.color}>
+                              {stBadge.label}
+                            </Badge>
+                          ) : null}
                         </div>
+
                         {s.reservedByMe ? (
-                          <FilledRibbon
-                            badgeOnly
-                            label="Reserved"
-                            position="bottom-right"
-                            ribbonClassName="bg-success-500"
-                          />
+                          <FilledRibbon badgeOnly label="Reserved" position="bottom-right" ribbonClassName="bg-success-500" />
                         ) : null}
 
-                        <RoundedRibbon label={ribbonLabel} ribbonClassName={ribbonColorClassFor(ribbonLabel)} className="h-full">
+                        <RoundedRibbon
+                          label={ribbonLabel}
+                          ribbonClassName={ribbonColorClassFor(ribbonLabel)}
+                          className="h-full"
+                        >
                           <div className="p-5 pt-16 sm:p-6 sm:pt-16">
                             <div className="space-y-2">
                               <p className="text-sm text-gray-500 dark:text-gray-400">
                                 Coach:{" "}
-                                <span className="font-medium text-gray-700 dark:text-gray-200">
-                                  {s.class?.coach || "—"}
-                                </span>
+                                <span className="font-medium text-gray-700 dark:text-gray-200">{s.class?.coach || "—"}</span>
                               </p>
 
                               <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -562,56 +624,60 @@ useEffect(() => {
                                 <span className="font-medium text-gray-700 dark:text-gray-200">
                                   {s.reservedCount}/{s.capacity}
                                 </span>
-                                {isScheduled(s.status) ? (
+                                {scheduled ? (
                                   <span className="ml-2">
                                     ·{" "}
-                                    <span className={`font-medium ${full ? "text-error-600 dark:text-error-400" : "text-green-600 dark:text-green-400"}`}>
+                                    <span
+                                      className={`font-medium ${
+                                        full ? "text-error-600 dark:text-error-400" : "text-green-600 dark:text-green-400"
+                                      }`}
+                                    >
                                       {full ? "Full" : `Left ${s.remaining}`}
                                     </span>
                                   </span>
+                                ) : completed ? (
+                                  <span className="ml-2">
+                                    · <span className="font-medium text-gray-700 dark:text-gray-200">Finalizada</span>
+                                  </span>
                                 ) : (
                                   <span className="ml-2">
-                                    · <span className="font-medium text-error-600 dark:text-error-400">Cancelled</span>
+                                    · <span className="font-medium text-error-600 dark:text-error-400">Closed</span>
                                   </span>
                                 )}
                               </p>
 
-                              {s.notes ? (
-                                <p className="text-sm text-gray-500 dark:text-gray-400">
-                                  {s.notes}
-                                </p>
-                              ) : null}
+                              {s.notes ? <p className="text-sm text-gray-500 dark:text-gray-400">{s.notes}</p> : null}
 
                               <div className="mt-4 flex flex-wrap items-center gap-2">
-                                {!s.reservedByMe ? (
-                                  <Button
-                                    variant="primary"
-                                    disabled={disabledReserve}
-                                    onClick={() => openReserve(s)}
-                                    className="h-9 px-4 py-0"
-                                  >
-                                    Reserve
-                                  </Button>
-                                ) : (
-                                  <Button variant="outline" onClick={() => openCancel(s)}
-                                  className="h-9 px-4 py-0"
-                                  >
-                                    Cancel
-                                  </Button>
-                                )}
-
-                                <button
+                                
+                                {/* Reserve/Cancel: solo si la sesión está scheduled */}
+                                {scheduled ? (
+                                  !s.reservedByMe ? (
+                                    <Button
+                                      variant="primary"
+                                      disabled={disabledReserve}
+                                      onClick={() => openReserve(s)}
+                                      className="h-9 px-4 py-0"
+                                    >
+                                      Reserve
+                                    </Button>
+                                  ) : (
+                                    <Button
+                                      variant="outline"
+                                      onClick={() => openCancel(s)}
+                                      className="h-9 px-4 py-0"
+                                    >
+                                      Cancel
+                                    </Button>
+                                  )
+                                ) : null}
+<button
                                   type="button"
-                                  onClick={() => { if (staffMode) { const sid = String((s as any)?.id || ""); const label = `${String((s as any)?.programName || (s as any)?.class?.name || "Session")} · ${String((s as any)?.date || "")} ${String((s as any)?.time || "")}`.trim(); if (sid) openAttendance(sid, label || sid); } else { openDetails(s); } }}
+                                  onClick={() => openDetails(s)}
                                   className="shadow-theme-xs inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 text-gray-500 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200"
+                                  title={staffMode ? "Tomar asistencia" : "Ver inscriptos"}
                                 >
-                                  <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="21"
-                                    height="20"
-                                    viewBox="0 0 21 20"
-                                    fill="none"
-                                  >
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="21" height="20" viewBox="0 0 21 20" fill="none">
                                     <path
                                       d="M2.96487 10.7925C2.73306 10.2899 2.73306 9.71023 2.96487 9.20764C4.28084 6.35442 7.15966 4.375 10.4993 4.375C13.8389 4.375 16.7178 6.35442 18.0337 9.20765C18.2655 9.71024 18.2655 10.2899 18.0337 10.7925C16.7178 13.6458 13.8389 15.6252 10.4993 15.6252C7.15966 15.6252 4.28084 13.6458 2.96487 10.7925Z"
                                       stroke="currentColor"
@@ -629,8 +695,11 @@ useEffect(() => {
                                   </svg>
                                 </button>
 
-
-
+                                {!scheduled ? (
+                                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                                    {completed ? "Clase finalizada: no se puede reservar/cancelar." : "Clase cerrada."}
+                                  </span>
+                                ) : null}
                               </div>
                             </div>
                           </div>
@@ -642,7 +711,7 @@ useEffect(() => {
               )}
             </div>
           ) : (
-            // History (igual que antes)
+            // History
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3 sm:flex sm:items-center sm:justify-between">
                 <div className="flex items-center gap-3">
@@ -677,9 +746,7 @@ useEffect(() => {
                   </div>
                 </div>
 
-                <div className="text-sm text-gray-500 dark:text-gray-400 sm:text-right">
-                  Sessions pasadas (asistencia)
-                </div>
+                <div className="text-sm text-gray-500 dark:text-gray-400 sm:text-right">Sessions pasadas (asistencia)</div>
               </div>
 
               {loadingHistory ? (
@@ -715,13 +782,16 @@ useEffect(() => {
 
                     <TableBody className="divide-y divide-gray-200 dark:divide-gray-800">
                       {historySorted.map((s) => {
-                        const att = badgeForAttendance(s.attendanceStatus);
+                        const done = isCompleted(s.status);
+                        const att =
+                          done && !s.attendanceStatus
+                            ? ({ label: "No marcada", color: "warning" } as any)
+                            : badgeForAttendance(s.attendanceStatus);
+
                         return (
                           <TableRow key={s.id} className="transition hover:bg-gray-50 dark:hover:bg-gray-900">
                             <TableCell className="px-5 py-4 whitespace-nowrap">
-                              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                {fmtDateES(s.date)}
-                              </p>
+                              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{fmtDateES(s.date)}</p>
                             </TableCell>
 
                             <TableCell className="px-5 py-4 whitespace-nowrap">
@@ -729,19 +799,17 @@ useEffect(() => {
                             </TableCell>
 
                             <TableCell className="px-5 py-4 whitespace-nowrap">
-                              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                {s.class?.name || "Session"}
-                              </p>
+                              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{s.class?.name || "Session"}</p>
                             </TableCell>
 
                             <TableCell className="px-5 py-4 whitespace-nowrap">
-                              <p className="text-sm text-gray-500 dark:text-gray-400">
-                                {s.class?.coach || "—"}
-                              </p>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">{s.class?.coach || "—"}</p>
                             </TableCell>
 
                             <TableCell className="px-5 py-4 whitespace-nowrap">
-                              <Badge size="sm" color={att.color}>{att.label}</Badge>
+                              <Badge size="sm" color={att.color}>
+                                {att.label}
+                              </Badge>
                             </TableCell>
                           </TableRow>
                         );
@@ -758,16 +826,12 @@ useEffect(() => {
       {/* Reserve modal */}
       <Modal isOpen={reserveModal.isOpen} onClose={reserveModal.closeModal} className="max-w-[600px] p-5 lg:p-10 m-4">
         <div className="text-center">
-          <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90 sm:text-title-sm">
-            Confirm reservation
-          </h4>
+          <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90 sm:text-title-sm">Confirm reservation</h4>
 
           {target ? (
             <p className="text-sm leading-6 text-gray-500 dark:text-gray-400">
               Do you want to reserve a spot in{" "}
-              <span className="font-semibold text-gray-800 dark:text-white/90">
-                {target.class?.type || target.class?.name || "Session"}
-              </span>{" "}
+              <span className="font-semibold text-gray-800 dark:text-white/90">{target.class?.type || target.class?.name || "Session"}</span>{" "}
               · {fmtDateES(target.date)} · {target.time}?
             </p>
           ) : null}
@@ -797,16 +861,12 @@ useEffect(() => {
       {/* Cancel modal */}
       <Modal isOpen={cancelModal.isOpen} onClose={cancelModal.closeModal} className="max-w-[600px] p-5 lg:p-10 m-4">
         <div className="text-center">
-          <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90 sm:text-title-sm">
-          Cancel reservation?
-          </h4>
+          <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90 sm:text-title-sm">Cancel reservation?</h4>
 
           {target ? (
             <p className="text-sm leading-6 text-gray-500 dark:text-gray-400">
               You’re about to cancel{" "}
-              <span className="font-semibold text-gray-800 dark:text-white/90">
-                {target.class?.type || target.class?.name || "Session"}
-              </span>{" "}
+              <span className="font-semibold text-gray-800 dark:text-white/90">{target.class?.type || target.class?.name || "Session"}</span>{" "}
               · {fmtDateES(target.date)} · {target.time}.
             </p>
           ) : null}
@@ -833,16 +893,15 @@ useEffect(() => {
         </div>
       </Modal>
 
-      {/* Details modal */}
+      {/* Details modal (athlete attendees) */}
       <Modal isOpen={detailsModal.isOpen} onClose={detailsModal.closeModal} className="max-w-[700px] p-5 lg:p-10 m-4">
         <div className="space-y-4">
           <div>
-            <h4 className="text-2xl font-semibold text-gray-800 dark:text-white/90 sm:text-title-sm">
-              Attendees
-            </h4>
+            <h4 className="text-2xl font-semibold text-gray-800 dark:text-white/90 sm:text-title-sm">Attendees</h4>
             {detailsSession ? (
               <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                {detailsSession.class?.type || detailsSession.class?.name || "Session"} · {fmtDateES(detailsSession.date)} · {detailsSession.time}
+                {detailsSession.class?.type || detailsSession.class?.name || "Session"} · {fmtDateES(detailsSession.date)} ·{" "}
+                {detailsSession.time}
               </p>
             ) : null}
           </div>
@@ -863,41 +922,30 @@ useEffect(() => {
             </div>
           ) : (
             <div className="overflow-x-auto custom-scrollbar rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
-  <Table>
-    <TableHeader className="border-y border-gray-200 dark:border-gray-800">
-      <TableRow>
-        <TableCell
-          isHeader
-          className="px-5 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400"
-        >
-          Name
-        </TableCell>
-      </TableRow>
-    </TableHeader>
+              <Table>
+                <TableHeader className="border-y border-gray-200 dark:border-gray-800">
+                  <TableRow>
+                    <TableCell isHeader className="px-5 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400">
+                      Name
+                    </TableCell>
+                  </TableRow>
+                </TableHeader>
 
-    <TableBody className="divide-y divide-gray-200 dark:divide-gray-800">
-      {attendees.map((a) => {
-        const name =
-          a.fullName?.split("@")[0] ||
-          `Member ${String(a.userId).slice(0, 8)}`;
+                <TableBody className="divide-y divide-gray-200 dark:divide-gray-800">
+                  {attendees.map((a) => {
+                    const name = a.fullName?.split("@")[0] || `Member ${String(a.userId).slice(0, 8)}`;
 
-        return (
-          <TableRow
-            key={a.userId}
-            className="transition hover:bg-gray-50 dark:hover:bg-gray-900"
-          >
-            <TableCell className="px-5 py-4 whitespace-nowrap">
-              <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                {name}
-              </p>
-            </TableCell>
-          </TableRow>
-        );
-      })}
-    </TableBody>
-  </Table>
-</div>
-
+                    return (
+                      <TableRow key={a.userId} className="transition hover:bg-gray-50 dark:hover:bg-gray-900">
+                        <TableCell className="px-5 py-4 whitespace-nowrap">
+                          <p className="text-sm font-medium text-gray-700 dark:text-gray-200">{name}</p>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
           )}
 
           <div className="flex justify-end">
@@ -907,17 +955,15 @@ useEffect(() => {
           </div>
         </div>
       </Modal>
-        {/* Attendance modal (coach/admin) */}
-  <SessionAttendanceModal
-    open={attOpen}
-    onClose={closeAttendance}
-    staffMode={staffMode}
-    sessionId={attSessionId}
-    sessionLabel={attSessionLabel}
-  />
+
+      {/* Attendance modal (coach/admin) */}
+      <SessionAttendanceModal
+        open={attOpen}
+        onClose={closeAttendance}
+        staffMode={staffMode}
+        sessionId={attSessionId}
+        sessionLabel={attSessionLabel}
+      />
     </div>
   );
-
-
-
 }

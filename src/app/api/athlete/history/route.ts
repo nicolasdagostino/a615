@@ -129,12 +129,13 @@ export async function GET(req: Request) {
     const attendanceBySessionId = new Map<string, "present" | "absent" | null>();
     try {
       const sessionIds = sessions.map((x: any) => String(x.id));
-      const { data: atts } = await admin
+      const { data: atts, error: attErr } = await admin
         .from("attendance")
-        .select("session_id, status, cancelled_at, user_id")
+        .select("session_id, status, user_id")
         .in("session_id", sessionIds)
-        .eq("user_id", user.id)
-        .is("cancelled_at", null);
+        .eq("user_id", user.id);
+
+      if (attErr) throw attErr;
 
       for (const a of (atts || []) as any[]) {
         const sid = String(a.session_id || "");
@@ -143,11 +144,11 @@ export async function GET(req: Request) {
         else if (st === "absent") attendanceBySessionId.set(sid, "absent");
         else attendanceBySessionId.set(sid, null);
       }
-    } catch {
-      // noop
+    } catch (e) {
+      // No queremos romper el history por esto, pero sí ver el error en server logs.
+      console.warn("[athlete/history] attendance lookup failed:", (e as any)?.message || e);
     }
-
-    const normalizeTime = (s: any) => {
+const normalizeTime = (s: any) => {
       if (timeCol === "starts_at") {
         // timestamp -> HH:MM (UTC) (si querés Madrid, lo ajustamos después)
         const iso = String(s.starts_at || "");

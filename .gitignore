@@ -37,3 +37,9 @@ pnpm-debug.log*
 .env.local
 .env.*.local
 *.bak.*
+# Local backups / debug artifacts
+logs/backups/
+*.log
+# One-off local scripts (keep repo clean)
+scripts/_local/
+scripts/tmp/

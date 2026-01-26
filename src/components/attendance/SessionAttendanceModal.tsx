@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type StaffRosterRow = {
   reservationId?: string;
@@ -18,10 +18,18 @@ type Props = {
   sessionLabel: string;
 };
 
+function normStatus(s: any): "scheduled" | "completed" | string {
+  const t = String(s || "").trim().toLowerCase();
+  return (t as any) || "scheduled";
+}
+
 export default function SessionAttendanceModal({ open, onClose, staffMode, sessionId, sessionLabel }: Props) {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [roster, setRoster] = useState<StaffRosterRow[]>([]);
+  const [sessionStatus, setSessionStatus] = useState<string>("scheduled");
+
+  const isCompleted = useMemo(() => normStatus(sessionStatus) === "completed", [sessionStatus]);
 
   useEffect(() => {
     if (!open) return;
@@ -29,6 +37,7 @@ export default function SessionAttendanceModal({ open, onClose, staffMode, sessi
       setRoster([]);
       setErr(null);
       setLoading(false);
+      setSessionStatus("scheduled");
       return;
     }
     if (!sessionId) return;
@@ -42,13 +51,17 @@ export default function SessionAttendanceModal({ open, onClose, staffMode, sessi
         const json = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(json?.error || "No se pudo cargar asistencia");
 
+        const statusFromApi = json?.session?.status ?? "scheduled";
+        if (alive) setSessionStatus(String(statusFromApi || "scheduled"));
+
         const list = Array.isArray(json?.session?.attendees) ? json.session.attendees : [];
         const normalized: StaffRosterRow[] = list.map((r: any) => ({
           reservationId: r.reservationId ? String(r.reservationId) : undefined,
           userId: String(r.userId),
           email: r.email ? String(r.email) : null,
           role: r.role ? String(r.role) : null,
-          attendanceStatus: r.attendanceStatus === "present" ? "present" : r.attendanceStatus === "absent" ? "absent" : null,
+          attendanceStatus:
+            r.attendanceStatus === "present" ? "present" : r.attendanceStatus === "absent" ? "absent" : null,
         }));
 
         if (alive) setRoster(normalized);
@@ -119,15 +132,54 @@ export default function SessionAttendanceModal({ open, onClose, staffMode, sessi
     }
   };
 
+  const toggleClose = async () => {
+    if (!sessionId) return;
+    setLoading(true);
+    setErr(null);
+    try {
+      const action = isCompleted ? "reopen" : "close";
+      const res = await fetch("/api/coach/attendance", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId, action }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json?.error || "No se pudo actualizar el estado de la sesión");
+
+      // backend puede devolver status; si no, inferimos por action
+      const nextStatus = String(json?.session?.status || (action === "close" ? "completed" : "scheduled"));
+      setSessionStatus(nextStatus);
+    } catch (e: any) {
+      setErr(String(e?.message || "Error"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (!open) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       <div className="w-full max-w-2xl rounded-2xl bg-white p-5 shadow-xl dark:bg-gray-900">
         <div className="flex items-start justify-between gap-3">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">Asistencia</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">Asistencia</h3>
+
+              {staffMode && (
+                <span
+                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                    isCompleted
+                      ? "bg-gray-200 text-gray-800 dark:bg-white/10 dark:text-white/80"
+                      : "bg-brand-50 text-brand-600 dark:bg-brand-500/15 dark:text-brand-300"
+                  }`}
+                >
+                  {isCompleted ? "Clase finalizada" : "Clase abierta"}
+                </span>
+              )}
+            </div>
+
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Sesión: <span className="text-gray-800 dark:text-white/90">{sessionLabel || "—"}</span>
             </p>
           </div>
@@ -146,6 +198,7 @@ export default function SessionAttendanceModal({ open, onClose, staffMode, sessi
               onClick={markAllPresent}
               disabled={loading || !roster.length}
               className="rounded-lg bg-brand-500 px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+              title={!roster.length ? "No hay reservas" : ""}
             >
               Marcar todos presentes
             </button>
@@ -156,6 +209,19 @@ export default function SessionAttendanceModal({ open, onClose, staffMode, sessi
               className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-white/10"
             >
               Reset
+            </button>
+
+            <button
+              onClick={toggleClose}
+              disabled={loading}
+              className={`rounded-lg px-3 py-2 text-sm font-medium disabled:opacity-50 ${
+                isCompleted
+                  ? "border border-gray-200 text-gray-800 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-100 dark:hover:bg-white/10"
+                  : "bg-gray-900 text-white hover:bg-gray-800 dark:bg-white/10 dark:text-white dark:hover:bg-white/15"
+              }`}
+              title={isCompleted ? "Reabrir para permitir cambios/acciones" : "Finalizar para cerrar reservas/cancelaciones"}
+            >
+              {isCompleted ? "Reabrir clase" : "Finalizar clase"}
             </button>
           </div>
         )}
@@ -185,7 +251,11 @@ export default function SessionAttendanceModal({ open, onClose, staffMode, sessi
                       <button
                         disabled={loading}
                         onClick={async () => {
-                          try { await setOne(r.userId, "present"); } catch (e: any) { setErr(String(e?.message || "Error")); }
+                          try {
+                            await setOne(r.userId, "present");
+                          } catch (e: any) {
+                            setErr(String(e?.message || "Error"));
+                          }
                         }}
                         className={`rounded-lg px-3 py-1.5 text-sm ${
                           r.attendanceStatus === "present"
@@ -199,7 +269,11 @@ export default function SessionAttendanceModal({ open, onClose, staffMode, sessi
                       <button
                         disabled={loading}
                         onClick={async () => {
-                          try { await setOne(r.userId, "absent"); } catch (e: any) { setErr(String(e?.message || "Error")); }
+                          try {
+                            await setOne(r.userId, "absent");
+                          } catch (e: any) {
+                            setErr(String(e?.message || "Error"));
+                          }
                         }}
                         className={`rounded-lg px-3 py-1.5 text-sm ${
                           r.attendanceStatus === "absent"
@@ -226,6 +300,12 @@ export default function SessionAttendanceModal({ open, onClose, staffMode, sessi
             </div>
           )}
         </div>
+
+        {staffMode && (
+          <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
+            Tip: si la clase está finalizada, el atleta no puede reservar ni cancelar. Podés reabrir si necesitás corregir algo.
+          </p>
+        )}
       </div>
     </div>
   );

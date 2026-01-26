@@ -63,7 +63,7 @@ export async function GET(req: Request) {
     const { data: sessionsRaw, error: sErr } = await admin
       .from("class_sessions")
       .select("id, class_id, session_date, start_time, duration_min, capacity, status, notes")
-      .eq("status", "scheduled")
+      .in("status", ["scheduled", "completed"])
       .gte("session_date", baseDate)
       .lt("session_date", dateTo)
       .order("session_date", { ascending: true })
