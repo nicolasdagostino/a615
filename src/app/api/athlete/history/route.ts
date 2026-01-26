@@ -17,6 +17,62 @@ function isoTodayUTC() {
   return new Date().toISOString().slice(0, 10);
 }
 
+
+// EFFECTIVE_STATUS_MADRID (Option A): completed derivado por horario (Madrid). cancelled viene de DB.
+// Si DB ya tiene status="completed", lo respetamos (compat).
+function isoTodayMadrid(): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Madrid",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+
+  const y = parts.find((p) => p.type === "year")?.value ?? "1970";
+  const m = parts.find((p) => p.type === "month")?.value ?? "01";
+  const d = parts.find((p) => p.type === "day")?.value ?? "01";
+  return `${y}-${m}-${d}`;
+}
+
+function nowMinutesMadrid(): number {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/Madrid",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(new Date());
+
+  const hh = Number(parts.find((p) => p.type === "hour")?.value ?? "0");
+  const mm = Number(parts.find((p) => p.type === "minute")?.value ?? "0");
+  return hh * 60 + mm;
+}
+
+function parseStartMinutes(hhmm: string): number | null {
+  const t = String(hhmm || "").trim().slice(0, 5);
+  const m = t.match(/^(\d{2}):(\d{2})$/);
+  if (!m) return null;
+  return Number(m[1]) * 60 + Number(m[2]);
+}
+
+function effectiveStatusMadrid(row: any, todayISO: string, nowMin: number, timeHHMM: string): "scheduled" | "completed" | "cancelled" {
+  const raw = String(row?.status || "").trim().toLowerCase();
+
+  if (raw === "cancelled") return "cancelled";
+  if (raw === "completed") return "completed"; // compat
+
+  const dateISO = String(row?.session_date || "").trim();
+  if (!dateISO) return "scheduled";
+
+  if (dateISO < todayISO) return "completed";
+  if (dateISO > todayISO) return "scheduled";
+
+  const startMin = parseStartMinutes(timeHHMM);
+  if (startMin == null) return "scheduled";
+  const dur = Number(row?.duration_min ?? 0) || 0;
+  const endMin = startMin + Math.max(1, dur);
+
+  return nowMin >= endMin ? "completed" : "scheduled";
+}
 type TimeCol = "time" | "start_time" | "session_time" | "starts_at";
 
 async function fetchSessionsWithTimeColumn(admin: any, start: string, end: string, todayISO: string) {
@@ -82,7 +138,8 @@ export async function GET(req: Request) {
     const mm = Number(month.slice(5, 7));
     const start = firstDayOfMonth(yy, mm);
     const end = firstDayNextMonth(yy, mm);
-    const todayISO = isoTodayUTC();
+    const todayISO = isoTodayMadrid();
+    const nowMin = nowMinutesMadrid();
 
     const admin = createAdminClient();
 
@@ -176,7 +233,7 @@ const normalizeTime = (s: any) => {
         time: normalizeTime(s),
         durationMin: Number(s.duration_min ?? 0),
         capacity: Number(s.capacity ?? 0),
-        status: String(s.status || "scheduled"),
+        status: effectiveStatusMadrid(s, todayISO, nowMin, normalizeTime(s)),
         notes: (s as any).notes ?? null,
         class: {
           id: classId,

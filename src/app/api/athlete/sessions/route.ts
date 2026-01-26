@@ -19,6 +19,64 @@ function addDaysISO(dateISO: string, days: number): string {
   return `${y}-${m}-${dd}`;
 }
 
+// EFFECTIVE_STATUS_MADRID (Option A): completed es derivado por horario (Madrid), cancelled viene de DB.
+// Si DB ya tiene status="completed", lo respetamos (compat).
+function isoTodayMadrid(): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Madrid",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+
+  const y = parts.find((p) => p.type === "year")?.value ?? "1970";
+  const m = parts.find((p) => p.type === "month")?.value ?? "01";
+  const d = parts.find((p) => p.type === "day")?.value ?? "01";
+  return `${y}-${m}-${d}`;
+}
+
+function nowMinutesMadrid(): number {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/Madrid",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(new Date());
+
+  const hh = Number(parts.find((p) => p.type === "hour")?.value ?? "0");
+  const mm = Number(parts.find((p) => p.type === "minute")?.value ?? "0");
+  return hh * 60 + mm;
+}
+
+function parseStartMinutes(start_time: string): number | null {
+  const t = String(start_time || "").trim().slice(0, 5);
+  const m = t.match(/^(\d{2}):(\d{2})$/);
+  if (!m) return null;
+  return Number(m[1]) * 60 + Number(m[2]);
+}
+
+function effectiveStatusMadrid(row: any, todayISO: string, nowMin: number): "scheduled" | "completed" | "cancelled" {
+  const raw = String(row?.status || "").trim().toLowerCase();
+
+  if (raw === "cancelled") return "cancelled";
+  if (raw === "completed") return "completed"; // compat
+
+  const dateISO = String(row?.session_date || "").trim();
+  if (!dateISO) return "scheduled";
+
+  // Si el día ya pasó (en Madrid), está completed
+  if (dateISO < todayISO) return "completed";
+  if (dateISO > todayISO) return "scheduled";
+
+  // Mismo día: comparar fin = start + duration
+  const startMin = parseStartMinutes(String(row?.start_time || ""));
+  if (startMin == null) return "scheduled";
+  const dur = Number(row?.duration_min ?? 0) || 0;
+  const endMin = startMin + Math.max(1, dur);
+
+  return nowMin >= endMin ? "completed" : "scheduled";
+}
+
 type MyReservationStatus = "active" | "cancelled" | null;
 type AttendanceStatus = "present" | "absent" | null;
 
@@ -52,7 +110,10 @@ export async function GET(req: Request) {
     const dateTo = addDaysISO(baseDate, days); // exclusive
     const admin = createAdminClient();
 
-    // Auto-seed SOLO para admin/coach (evita olvidos)
+const todayISO_MADRID = isoTodayMadrid();
+    const nowMin_MADRID = nowMinutesMadrid();
+
+        // Auto-seed SOLO para admin/coach (evita olvidos)
     const { data: prof } = await supabase.from("profiles").select("role").eq("id", user.id).single();
     const role = String((prof as any)?.role || "").toLowerCase();
     if (role === "admin" || role === "coach") {
@@ -63,7 +124,7 @@ export async function GET(req: Request) {
     const { data: sessionsRaw, error: sErr } = await admin
       .from("class_sessions")
       .select("id, class_id, session_date, start_time, duration_min, capacity, status, notes")
-      .in("status", ["scheduled", "completed"])
+      .in("status", ["scheduled", "cancelled", "completed"])
       .gte("session_date", baseDate)
       .lt("session_date", dateTo)
       .order("session_date", { ascending: true })
@@ -187,7 +248,7 @@ export async function GET(req: Request) {
         capacity: Number(s.capacity ?? 12),
         reservedCount,
         remaining: Math.max(0, Number(s.capacity ?? 0) - reservedCount),
-        status: String(s.status || "scheduled"),
+        status: effectiveStatusMadrid(s, todayISO_MADRID, nowMin_MADRID),
         notes: s.notes ?? null,
 
         programId,

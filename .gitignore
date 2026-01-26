@@ -43,3 +43,7 @@ logs/backups/
 # One-off local scripts (keep repo clean)
 scripts/_local/
 scripts/tmp/
+
+# Local one-off fix scripts
+scripts/apply-*.sh
+scripts/fix-*.sh

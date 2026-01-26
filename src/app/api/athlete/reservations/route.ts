@@ -2,6 +2,63 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
+
+// EFFECTIVE_STATUS_MADRID (Option A): completed derivado por horario (Madrid). cancelled viene de DB.
+// Si DB ya tiene status="completed", lo respetamos (compat).
+function isoTodayMadrid(): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Madrid",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+
+  const y = parts.find((p) => p.type === "year")?.value ?? "1970";
+  const m = parts.find((p) => p.type === "month")?.value ?? "01";
+  const d = parts.find((p) => p.type === "day")?.value ?? "01";
+  return `${y}-${m}-${d}`;
+}
+
+function nowMinutesMadrid(): number {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/Madrid",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(new Date());
+
+  const hh = Number(parts.find((p) => p.type === "hour")?.value ?? "0");
+  const mm = Number(parts.find((p) => p.type === "minute")?.value ?? "0");
+  return hh * 60 + mm;
+}
+
+function parseStartMinutes(hhmm: string): number | null {
+  const t = String(hhmm || "").trim().slice(0, 5);
+  const m = t.match(/^(\d{2}):(\d{2})$/);
+  if (!m) return null;
+  return Number(m[1]) * 60 + Number(m[2]);
+}
+
+function effectiveStatusMadrid(row: any, todayISO: string, nowMin: number, timeHHMM: string): "scheduled" | "completed" | "cancelled" {
+  const raw = String(row?.status || "").trim().toLowerCase();
+
+  if (raw === "cancelled") return "cancelled";
+  if (raw === "completed") return "completed"; // compat
+
+  const dateISO = String(row?.session_date || "").trim();
+  if (!dateISO) return "scheduled";
+
+  if (dateISO < todayISO) return "completed";
+  if (dateISO > todayISO) return "scheduled";
+
+  const startMin = parseStartMinutes(timeHHMM);
+  if (startMin == null) return "scheduled";
+  const dur = Number(row?.duration_min ?? 0) || 0;
+  const endMin = startMin + Math.max(1, dur);
+
+  return nowMin >= endMin ? "completed" : "scheduled";
+}
+
 /**
  * POST /api/athlete/reservations
  * body: { sessionId: string }
@@ -28,9 +85,22 @@ if (!sessionId) return NextResponse.json({ error: "sessionId is required" }, { s
     try {
       const { data: sess } = await admin
         .from("class_sessions")
-        .select("id, status")
+        .select("id, status, session_date, start_time, duration_min")
         .eq("id", sessionId)
         .single();
+    // EFFECTIVE_STATUS_GUARD (Option A Madrid): no reservar/cancelar si ya terminó o fue cancelada
+    const _todayISO = isoTodayMadrid();
+    const _nowMin = nowMinutesMadrid();
+    const _startHHMM = String((sess as any)?.start_time || "").slice(0, 5);
+    const _eff = effectiveStatusMadrid(sess, _todayISO, _nowMin, _startHHMM);
+
+    if (_eff !== "scheduled") {
+      return NextResponse.json(
+        { error: _eff === "cancelled" ? "Session is cancelled" : "Session is completed" },
+        { status: 400 }
+      );
+    }
+
       const st = String((sess as any)?.status || "scheduled").toLowerCase();
       if (st !== "scheduled") {
         return NextResponse.json({ error: "Session closed" }, { status: 409 });
@@ -156,9 +226,22 @@ if (!sessionId) return NextResponse.json({ error: "sessionId is required" }, { s
     try {
       const { data: sess } = await admin
         .from("class_sessions")
-        .select("id, status")
+        .select("id, status, session_date, start_time, duration_min")
         .eq("id", sessionId)
         .single();
+    // EFFECTIVE_STATUS_GUARD (Option A Madrid): no reservar/cancelar si ya terminó o fue cancelada
+    const _todayISO = isoTodayMadrid();
+    const _nowMin = nowMinutesMadrid();
+    const _startHHMM = String((sess as any)?.start_time || "").slice(0, 5);
+    const _eff = effectiveStatusMadrid(sess, _todayISO, _nowMin, _startHHMM);
+
+    if (_eff !== "scheduled") {
+      return NextResponse.json(
+        { error: _eff === "cancelled" ? "Session is cancelled" : "Session is completed" },
+        { status: 400 }
+      );
+    }
+
       const st = String((sess as any)?.status || "scheduled").toLowerCase();
       if (st !== "scheduled") {
         return NextResponse.json({ error: "Session closed" }, { status: 409 });

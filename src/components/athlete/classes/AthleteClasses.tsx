@@ -128,11 +128,10 @@ function badgeForAttendance(st: "present" | "absent" | null): { label: string; c
   if (st === "absent") return { label: "Absent", color: "error" };
   return { label: "Pending", color: "info" };
 }
-
-
 function normalizeSessionStatus(raw: any): string {
   const st = String(raw || "").trim().toLowerCase();
   if (!st) return "scheduled";
+  // variantes comunes
   if (st === "canceled") return "cancelled"; // US -> UK
   if (st === "done" || st === "finished" || st === "finalized") return "completed";
   return st;
@@ -141,7 +140,7 @@ function normalizeSessionStatus(raw: any): string {
 function sessionStatusBadge(s: ApiSession, todayISO: string): { label: string; color: BadgeColor } | null {
   const st = normalizeSessionStatus((s as any).status);
 
-  // Si NO es scheduled, siempre mostramos badge
+  // Si NO es scheduled, siempre mostramos badge (lo que querías)
   if (st === "completed") return { label: "Completed", color: "success" };
   if (st === "cancelled") return { label: "Cancelled", color: "error" };
   if (st !== "scheduled") return { label: st.toUpperCase(), color: "warning" as BadgeColor };
@@ -149,8 +148,10 @@ function sessionStatusBadge(s: ApiSession, todayISO: string): { label: string; c
   // Heurística "In progress" solo para UI (Madrid)
   const startMin = parseHHMMToMinutes(s.time);
   if (!startMin) return null;
+
   const dur = Number(s.durationMin || 0);
   const nowMin = nowMinutesMadrid();
+
   if (String(s.date) === String(todayISO) && nowMin >= startMin && nowMin < startMin + Math.max(1, dur)) {
     return { label: "In progress", color: "warning" as BadgeColor };
   }
@@ -158,14 +159,12 @@ function sessionStatusBadge(s: ApiSession, todayISO: string): { label: string; c
 }
 
 
-
-
 function isScheduled(status: string) {
-  return String(status || "").trim().toLowerCase() === "scheduled";
+  return normalizeSessionStatus(status) === "scheduled";
 }
 
 function isCompleted(status: string) {
-  return String(status || "").trim().toLowerCase() === "completed";
+  return normalizeSessionStatus(status) === "completed";
 }
 
 function ribbonColorClassFor(label: string) {
@@ -570,8 +569,10 @@ export default function AthleteClasses({ staffMode: staffModeProp = false }: Ath
                     const ribbonLabel = (s.class?.name || s.class?.type || "Session").trim();
                     const full = (s.remaining ?? 0) <= 0;
 
-                    const scheduled = isScheduled(s.status);
-                    const completed = isCompleted(s.status);
+                    const effectiveStatus = normalizeSessionStatus(s.status);
+const scheduled = effectiveStatus === "scheduled";
+const completed = effectiveStatus === "completed";
+const cancelled = effectiveStatus === "cancelled";
 
                     const disabledReserve = full || !scheduled;
                     const disabledCancel = !scheduled; // B2: si está completed/cancelled, no cancelar
@@ -585,9 +586,6 @@ export default function AthleteClasses({ staffMode: staffModeProp = false }: Ath
                     const cancelTitle = !scheduled ? "No se puede cancelar una clase finalizada/cancelada" : "";
 
                     const stBadge = sessionStatusBadge(s, todayISO);
-
-                    console.log("SESSION_STATUS", s.id, s.status);
-
                     return (
                       <div key={s.id} className="relative">
                         {/* Badges arriba derecha: hora + status */}
@@ -636,14 +634,18 @@ export default function AthleteClasses({ staffMode: staffModeProp = false }: Ath
                                     </span>
                                   </span>
                                 ) : completed ? (
-                                  <span className="ml-2">
-                                    · <span className="font-medium text-gray-700 dark:text-gray-200">Finalizada</span>
-                                  </span>
-                                ) : (
-                                  <span className="ml-2">
-                                    · <span className="font-medium text-error-600 dark:text-error-400">Closed</span>
-                                  </span>
-                                )}
+  <span className="ml-2">
+    · <span className="font-medium text-gray-700 dark:text-gray-200">Finalizada</span>
+  </span>
+) : cancelled ? (
+  <span className="ml-2">
+    · <span className="font-medium text-error-600 dark:text-error-400">Cancelada</span>
+  </span>
+) : (
+  <span className="ml-2">
+    · <span className="font-medium text-error-600 dark:text-error-400">Closed</span>
+  </span>
+)}
                               </p>
 
                               {s.notes ? <p className="text-sm text-gray-500 dark:text-gray-400">{s.notes}</p> : null}
@@ -651,55 +653,59 @@ export default function AthleteClasses({ staffMode: staffModeProp = false }: Ath
                               <div className="mt-4 flex flex-wrap items-center gap-2">
                                 
                                 {/* Reserve/Cancel: solo si la sesión está scheduled */}
-                                {scheduled ? (
-                                  !s.reservedByMe ? (
-                                    <Button
-                                      variant="primary"
-                                      disabled={disabledReserve}
-                                      onClick={() => openReserve(s)}
-                                      className="h-9 px-4 py-0"
-                                    >
-                                      Reserve
-                                    </Button>
-                                  ) : (
-                                    <Button
-                                      variant="outline"
-                                      onClick={() => openCancel(s)}
-                                      className="h-9 px-4 py-0"
-                                    >
-                                      Cancel
-                                    </Button>
-                                  )
-                                ) : null}
-<button
-                                  type="button"
-                                  onClick={() => openDetails(s)}
-                                  className="shadow-theme-xs inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 text-gray-500 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200"
-                                  title={staffMode ? "Tomar asistencia" : "Ver inscriptos"}
-                                >
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="21" height="20" viewBox="0 0 21 20" fill="none">
-                                    <path
-                                      d="M2.96487 10.7925C2.73306 10.2899 2.73306 9.71023 2.96487 9.20764C4.28084 6.35442 7.15966 4.375 10.4993 4.375C13.8389 4.375 16.7178 6.35442 18.0337 9.20765C18.2655 9.71024 18.2655 10.2899 18.0337 10.7925C16.7178 13.6458 13.8389 15.6252 10.4993 15.6252C7.15966 15.6252 4.28084 13.6458 2.96487 10.7925Z"
-                                      stroke="currentColor"
-                                      strokeWidth="1.5"
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                    />
-                                    <path
-                                      d="M13.5202 10C13.5202 11.6684 12.1677 13.0208 10.4993 13.0208C8.83099 13.0208 7.47852 11.6684 7.47852 10C7.47852 8.33164 8.83099 6.97917 10.4993 6.97917C12.1677 6.97917 13.5202 8.33164 13.5202 10Z"
-                                      stroke="currentColor"
-                                      strokeWidth="1.5"
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                    />
-                                  </svg>
-                                </button>
+{scheduled ? (
+  !s.reservedByMe ? (
+    <Button
+      variant="primary"
+      disabled={disabledReserve}
+      onClick={() => openReserve(s)}
+      className="h-9 px-4 py-0"
+    >
+      Reserve
+    </Button>
+  ) : (
+    <Button
+      variant="outline"
+      onClick={() => openCancel(s)}
+      className="h-9 px-4 py-0"
+    >
+      Cancel
+    </Button>
+  )
+) : null}
 
-                                {!scheduled ? (
-                                  <span className="text-xs text-gray-500 dark:text-gray-400">
-                                    {completed ? "Clase finalizada: no se puede reservar/cancelar." : "Clase cerrada."}
-                                  </span>
-                                ) : null}
+<button
+  type="button"
+  onClick={() => openDetails(s)}
+  className="shadow-theme-xs inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 text-gray-500 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" width="21" height="20" viewBox="0 0 21 20" fill="none">
+    <path
+      d="M2.96487 10.7925C2.73306 10.2899 2.73306 9.71023 2.96487 9.20764C4.28084 6.35442 7.15966 4.375 10.4993 4.375C13.8389 4.375 16.7178 6.35442 18.0337 9.20765C18.2655 9.71024 18.2655 10.2899 18.0337 10.7925C16.7178 13.6458 13.8389 15.6252 10.4993 15.6252C7.15966 15.6252 4.28084 13.6458 2.96487 10.7925Z"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M13.5202 10C13.5202 11.6684 12.1677 13.0208 10.4993 13.0208C8.83099 13.0208 7.47852 11.6684 7.47852 10C7.47852 8.33164 8.83099 6.97917 10.4993 6.97917C12.1677 6.97917 13.5202 8.33164 13.5202 10Z"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+</button>
+
+{!scheduled ? (
+  <span className="text-xs text-gray-500 dark:text-gray-400">
+    {completed
+      ? "Clase finalizada: no se puede reservar/cancelar."
+      : cancelled
+      ? "Clase cancelada."
+      : "Clase cerrada."}
+  </span>
+) : null}
                               </div>
                             </div>
                           </div>
